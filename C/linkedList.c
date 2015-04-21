@@ -110,7 +110,9 @@ void clearListClear(LinkedList *head, int nbNodesToClear){
     }
 }
 
+/*
 int main (int argc, char* argv[]){
 	//...
 	return 0;
 }
+*/

@@ -8,16 +8,16 @@ mkdir -p $serverFolder
 
 echo \*\* updating JS \*\*
 #JS goes to /home/pi/SmartHome/server/
-service node stop
+service nodeServer stop
 cp ./JS/server.js $serverFolder
-service node start
+service nodeServer start
 
 echo \*\* updating C code \*\*
  #compile !
 cd C
-gcc -g -o RF_receiver vw.c -lpigpio -lpthread -lrt -lsqlite3 linkedList.c
-service RF_receiver stop
-cp ./RF_receiver $serverFolder
+gcc -g -o RF_Receiver RF_Receiver.c -lpigpio -lpthread -lrt -lsqlite3 linkedList.c
+service RF_Receiver stop
+cp ./RF_Receiver $serverFolder
 
 cd ..
 #C goes to /home/pi/SmartHome/server/
@@ -30,6 +30,6 @@ echo \*\* upgrading Web \*\*
 #web goes to /var/www/...
 
 echo \*\* restart service \*\*
-service RF_receiver start
+service RF_Receiver start
 
 echo \*\* End \*\*
