@@ -1,0 +1,4 @@
+.mode csv
+.import 02_init_tables/01_units.csv units
+.import 02_init_tables/02_groups.csv groups
+.import 02_init_tables/03_sensors.csv sensors
