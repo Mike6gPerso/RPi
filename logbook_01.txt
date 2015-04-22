@@ -1,0 +1,204 @@
+###############################################################################
+# First update everything!
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get dist-upgrade
+
+dpkg-reconfigure tzdata
+
+sudo raspi-config
+###############################################################################
+
+
+#http://www.homautomation.org/2013/09/21/433mhtz-rf-communication-between-arduino-and-raspberry-pi/
+#Installing wiringPi
+
+git clone git://git.drogon.net/wiringPi
+cd wiringPi/
+sudo su
+./build
+
+#test the build
+gpio readall
+
+cd ..
+
+# Install 433Utils
+git clone https://github.com/ninjablocks/433Utils.git
+cd 433Utils/RPi_utils
+make
+
+# Start the Sniffer
+./RFSniffer
+
+exit
+###############################################################################
+
+# Install nginx
+#http://lowpowerlab.com/blog/2013/10/07/raspberrypi-home-automation-gateway-setup/
+
+sudo apt-get install build-essential -y
+sudo apt-get install libpcre3 libpcre3-dev libpcrecpp0 libssl-dev zlib1g-dev -y
+
+sudo mkdir ~/sources
+cd ~/sources/
+
+sudo wget http://nginx.org/download/nginx-1.7.9.tar.gz
+sudo tar zxf nginx-1.7.9.tar.gz
+cd nginx-1.7.9
+
+sudo ./configure \
+    --prefix=/usr \
+    --conf-path=/etc/nginx/nginx.conf \
+    --error-log-path=/var/log/nginx/error.log \
+    --http-log-path=/var/log/nginx/access.log \
+    --pid-path=/var/run/nginx.pid \
+    --lock-path=/var/lock/nginx.lock \
+    --with-http_ssl_module \
+    --user=www-data \
+    --group=www-data \
+    --with-http_stub_status_module \
+    --with-http_gzip_static_module \
+    --without-mail_pop3_module \
+    --without-mail_imap_module \
+    --without-mail_smtp_module
+	
+sudo make
+sudo make install
+
+# Then follow steps described in the link !
+
+#
+
+## Optional, as vw.c, described below works muuuuch better (faster, lower CPU Usage...)
+# install vw.py (http://www.raspberrypi.org/forums/viewtopic.php?p=598087#p598087) 
+mkdir virtualWire
+cd virtualWire
+
+#install pigpio
+wget abyz.co.uk/rpi/pigpio/pigpio.zip
+unzip pigpio.zip
+cd PIGPIO
+make
+make install
+
+#start daemon
+sudo pigpiod
+
+#enable spi interface 
+# Use raspi-config
+#- http://www.raspberry-projects.com/pi/pi-operating-systems/raspbian/io-pins-raspbian/spi-pins
+#edit file /etc/modprobe.d/raspi-blacklist.conf -> #blacklist spi-bcm2708
+
+#install python-dev
+sudo apt-get install python-dev
+
+#install spi-dev
+mkdir py-spidev
+cd py-spidev
+wget https://raw.github.com/doceme/py-spidev/master/setup.py
+wget https://raw.github.com/doceme/py-spidev/master/spidev_module.c
+wget https://raw.github.com/doceme/py-spidev/master/README.md
+wget https://raw.github.com/doceme/py-spidev/master/CHANGELOG.md
+sudo python setup.py install
+
+#install vw.c !!!!!!! (better performance than vw.py...!) (search in the page the following code)
+http://www.raspberrypi.org/forums/viewtopic.php?p=682408#p682408
+
+/*
+vw.c
+2015-02-01
+Public Domain
+
+gcc -o vw vw.c -lpigpio -lpthread -lrt
+*/
+
+/*
+This module provides a 313MHz/434MHz radio interface compatible
+with the Virtual Wire library used on Arduinos.
+
+Untested.
+*/
+
+
+#Install MongoDB
+#Lien FR: http://raspbian-france.fr/installer-mongodb-raspberry-pi/
+# link: https://emersonveenstra.net/mongodb-raspberry-pi/
+
+# Get the mongo.tar.gz archive from https://github.com/nmcl/mongo4pi
+
+tar xvzf mongo.tar.gz
+sudo cp -r mongo/bin /usr/
+sudo cp -r mongo/lib /usr/
+sudo cp -r mongo/include /usr/
+
+#create user
+sudo adduser --firstuid 100 --ingroup nogroup --shell /etc/false --disabled-password --gecos "" --no-create-home mongodb
+
+#create logs dir
+sudo mkdir /var/log/mongodb/
+sudo mkdir /var/lib/mongodb/
+sudo chown mongodb:nogroup /var/log/mongodb/
+sudo chown mongodb:nogroup /var/lib/mongodb/
+
+#install sqlite3 for npm
+npm install sqlite3
+
+
+#########################################################################################
+# Make node start at startup
+sudo touch /etc/init.d/nodeServer
+sudo chmod a+x /etc/init.d/nodeServer
+sudo update-rc.d nodeServer defaults
+
+cat <<EOT >> /etc/init.d/nodeServer
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          nodeServer
+# Required-Start:    $all
+# Required-Stop:     $all
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: starts node with the server.js file
+# Description:       starts node for the monitoring using server.js
+### END INIT INFO
+
+
+case $1 in
+start) start-stop-daemon --start --exec /opt/node/bin/node /home/pi/virtualWire/server.js --pidfile /var/run/nodejs_server.pid --make-pidfile --chdir /home/pi/virtualWire/ --background
+       ;;
+stop)  start-stop-daemon --stop --pidfile /var/run/nodejs_server.pid
+       ;;
+esac
+
+exit 0
+EOT
+
+# Make vw start at startup
+sudo touch /etc/init.d/vw
+sudo chmod a+x /etc/init.d/vw
+sudo update-rc.d vw defaults
+
+cat <<EOT >> /etc/init.d/vw
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          vw
+# Required-Start:    $all
+# Required-Stop:     $all
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: starts virtualWire
+# Description:       starts virtualWire to receive info from nodes
+### END INIT INFO
+
+case $1 in
+start) start-stop-daemon --start --exec /home/pi/virtualWire/vw2 --pidfile /var/run/vw.pid --make-pidfile --chdir /home/pi/virtualWire/ --background
+       ;;
+stop)  start-stop-daemon --stop --pidfile /var/run/vw.pid
+       ;;
+esac
+
+exit 0
+EOT
