@@ -24,12 +24,14 @@ CREATE TABLE units
 );
 CREATE TABLE data
 (
-    timestamp TEXT,
-    data REAL,
-    sensor_ID INTEGER,
-    unit_ID INTEGER,
-    FOREIGN KEY(unit_ID) REFERENCES units(id),
-    FOREIGN KEY(sensor_ID) REFERENCES sensors(id)
+        timestamp TEXT,
+        data INTEGER,
+        sensor_ID INTEGER,
+        group_ID INTEGER,
+        unit_ID INTEGER,
+        FOREIGN KEY(unit_ID) REFERENCES units(id),
+        FOREIGN KEY(sensor_ID) REFERENCES sensors(id),
+	FOREIGN KEY (group_ID) REFERENCES groups(id);
 );
 
 CREATE INDEX idx_data_timestamp_desc_1 on data(timestamp DESC);
