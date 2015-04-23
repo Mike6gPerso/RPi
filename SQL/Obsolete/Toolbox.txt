@@ -1,0 +1,15 @@
+#! /bin/bash
+echo ".mode csv" > import_all_data.txt
+if [ ! -d data/no_header ]
+then
+	mkdir data/no_header
+fi
+
+for f in `ls data/*.csv`
+do
+new_f=$(echo no_header/`basename $f`)
+#echo $new_f
+tail -n +2 $f > data/$new_f
+echo ".import data/$new_f t1 " >> import_all_data.txt
+#echo $f
+done
