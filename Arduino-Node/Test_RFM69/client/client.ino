@@ -26,7 +26,7 @@ void setup()
     Serial.println("setFrequency failed");
   // If you are using a high power RF69, you *must* set a Tx power in the
   // range 14 to 20 like this:
-  // rf69.setTxPower(14);
+  rf69.setTxPower(14);
   // The encryption key has to be the same as the one in the server
   uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
                     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
@@ -35,6 +35,7 @@ void setup()
 void loop()
 {
   Serial.println("Sending to rf69_server");
+  digitalWrite(13, HIGH);
   // Send a message to rf69_server
   uint8_t data[] = "Hello World!";
   rf69.send(data, sizeof(data));
@@ -60,6 +61,7 @@ void loop()
   {
     Serial.println("No reply, is rf69_server running?");
   }
+    digitalWrite(13, LOW);
   delay(400);
 }
 

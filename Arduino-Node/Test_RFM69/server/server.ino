@@ -13,12 +13,14 @@
 #include <SPI.h>
 #include <RH_RF69.h>
 // Singleton instance of the radio driver
-RH_RF69 rf69;
+RH_RF69 rf69(2,10);
 //RH_RF69 rf69(15, 16); // For RF69 on PJRC breakout board with Teensy 3.1
 //RH_RF69 rf69(4, 2); // For MoteinoMEGA https://lowpowerlab.com/shop/moteinomega
 void setup() 
 {
+  pinMode(7, OUTPUT);
   Serial.begin(9600);
+  Serial.println("Starting server");
   if (!rf69.init())
     Serial.println("init failed");
   // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
@@ -27,7 +29,7 @@ void setup()
     Serial.println("setFrequency failed");
   // If you are using a high power RF69, you *must* set a Tx power in the
   // range 14 to 20 like this:
-  // rf69.setTxPower(14);
+  rf69.setTxPower(14);
  // The encryption key has to be the same as the one in the client
   uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
                     0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
@@ -41,9 +43,12 @@ void setup()
   rf69.setSyncWords(syncwords, sizeof(syncwords));
   rf69.setEncryptionKey((uint8_t*)"thisIsEncryptKey");
 #endif
+  digitalWrite(7, HIGH);
 }
 void loop()
 {
+  digitalWrite(13, HIGH);
+  Serial.println("loop"); 
   if (rf69.available())
   {
     // Should be a message for us now   
@@ -68,4 +73,5 @@ void loop()
       Serial.println("recv failed");
     }
   }
+    digitalWrite(13, LOW);
 }
