@@ -55,6 +55,7 @@ sensorsApp.controller('SensorListCtrl', function ($scope, socket) {
 		var dataReceived = sensor.data;
 		sensor.data = [];
 		
+		//build data
 		$.each(dataReceived, function(idx, data){
 			var aData = {};
 			var aUnit = {};
@@ -63,6 +64,18 @@ sensorsApp.controller('SensorListCtrl', function ($scope, socket) {
 			aUnit.value = unitConverter[aUnit.id];
 			aData.unit = aUnit;
 			sensor.data.push(aData);
+		});
+
+		//sort data
+		sensor.data.sort(function(a,b) {
+			if(a.unit.id < b.unit.id) {
+				return -1;
+			}
+
+			if(a.unit.id > b.unit.id) {
+				return 1;
+			}
+			return 0;
 		});
 
 		$scope.sensors[sensor.idx] = sensor;
