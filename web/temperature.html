@@ -9,6 +9,7 @@
 	<script src="temperature.js" type="text/javascript"></script>
 
 	<link rel="stylesheet" type="text/css" href="temperature.css" />
+	<link rel="stylesheet" type="text/css" href="icon/fontello/css/fontello.css" />
 
 	<head>
 		<title>Micka's home</title>
@@ -25,23 +26,33 @@
 					<div id="tempDataDiv">{{tempData}}</div>
 					<div id="humidityDataDiv">{{humidityData}}</div>
 				</div>
-				<!-- <div ng-controller="SensorListCtrl">
-					<div id="sensors"></div>
-					<div id="debug"></div>
-						<ul>
-					    <li ng-repeat="sensor in sensors">
-					      <span>{{sensor.name}}</span>
-						  <button ng-click="openChart(sensor)">Chart</button>
-					      <ul>
-							<li ng-repeat="data in sensor.data">
-							<span>{{data.data / 100}} {{data.unit}}</span>
-							</li>
-						  </ul>
-					    </li>
-					  </ul>
-					  <div>{{someField}}</div>
-					  <div id="chartdiv" style="width:100%; height:500px;"></div>
-				</div>-->
+				<div ng-controller="SensorListCtrl">
+					<div id="sensors">
+						<div id="sensor" ng-repeat="sensor in sensors">
+							<div id="sensorName">
+								<div class="sensorName">Sensor {{sensor.id}}</div>
+							</div>
+							<div id="sensorDatas">
+								<div class="sensorLocation">loc: {{sensor.name}}</div>
+								<div id="sensorData" ng-repeat="data in sensor.data">
+									<div class="dataIcon">
+										<div ng-if="data.unit.id == 1" class="icon-temperatire"></div>
+										<div ng-if="data.unit.id == 2" class="icon-hail-inv"></div>
+									</div>
+									<div class="dataValue">
+										<span>{{data.value}} {{data.unit.value}}</span>
+									</div>
+								</div>
+							</div>
+							<div id="displayChart">
+								<button ng-click="openChart(sensor)">Chart</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div>{{someField}}</div>
+				<div id="chartdiv" style="width:100%; height:500px;"></div>
+				</div>
 			</div>
 		</div>
 	 </body>

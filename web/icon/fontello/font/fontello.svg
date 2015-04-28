@@ -1,0 +1,16 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg">
+<metadata>Copyright (C) 2015 by original authors @ fontello.com</metadata>
+<defs>
+<font id="fontello" horiz-adv-x="1000" >
+<font-face font-family="fontello" font-weight="400" font-stretch="normal" units-per-em="1000" ascent="850" descent="-150" />
+<missing-glyph horiz-adv-x="1000" />
+<glyph glyph-name="temperature" unicode="&#xe800;" d="m375 37q0 73 62 108v574q0 28 19 48 18 20 44 20t44-20q18-20 18-48v-574q63-35 63-108 0-50-37-87t-89-38q-52 0-88 38-36 37-36 87z" horiz-adv-x="1000" />
+<glyph glyph-name="hail-inv" unicode="&#xe801;" d="m0 506q0 90 64 154t155 65q17 0 31-2 43 61 109 93 68 33 141 33t140-33q66-32 110-93 13 2 31 2 90 0 154-65t64-154-64-154-154-65q-42 0-78 14-88-76-203-76t-203 76q-37-14-78-14-90 0-155 65t-64 154z m125-344q0 26 19 44t43 19 43-20q20-17 20-43t-19-44-44-18-43 18-19 44z m125-250q0 26 18 44t44 19 43-20q20-17 20-43t-19-44-44-18-44 18-18 44z m187 188q0 25 19 44t44 18 43-19q19-18 19-43t-18-44-44-19-44 19-19 44z m188-188q0 26 18 44t44 19 43-20q20-17 20-43t-19-44-44-18-44 18-18 44z m125 250q0 26 18 44t44 19 43-20q20-17 20-43t-19-44-44-18-44 18-18 44z" horiz-adv-x="1000" />
+<glyph glyph-name="temperatire" unicode="&#xe802;" d="m286 190q34-8 57-36t22-64q0-42-31-73t-74-32-73 31-31 74q0 37 23 64t56 36l0 290q0 10 8 18t17 9 18-9 8-18l0-290z m157 84q78-79 78-184 0-107-77-184t-184-77-184 77-76 184q0 107 78 184l0 415q0 75 53 129t129 54 129-54 54-129l0-415z m-183-340q65 0 111 46t45 110q0 88-77 134l0 465q0 31-23 54t-56 24-55-24-22-54l0-465q-79-46-79-134 0-65 45-110t111-46z" horiz-adv-x="521" />
+<glyph glyph-name="chart-area" unicode="&#xe803;" d="m1143-7v-72h-1143v858h71v-786h1072z m-214 571l142-500h-928v322l250 321 321-321z" horiz-adv-x="1142.9" />
+<glyph glyph-name="chart-line" unicode="&#xe804;" d="m1143-7v-72h-1143v858h71v-786h1072z m-72 696v-242q0-12-10-17t-20 4l-68 68-353-353q-6-6-13-6t-13 6l-130 130-232-233-107 108 326 326q6 6 13 6t13-6l130-130 259 259-67 67q-9 9-5 20t17 11h243q7 0 12-5t5-13z" horiz-adv-x="1142.9" />
+</font>
+</defs>
+</svg>
