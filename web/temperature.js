@@ -2,6 +2,11 @@ var chart;
 var chartData = {};
 var sensorsApp = angular.module('sensorsApp', []);
 
+var unitConverter = {
+	"1":"C",
+	"2":"%"
+};
+
 sensorsApp.controller('SensorGlobal', function ($scope, socket) {
 
 	$scope.lastUpdate = "";
@@ -45,14 +50,27 @@ sensorsApp.controller('SensorListCtrl', function ($scope, socket) {
 		
 	});
 	socket.on("sensorData", function (sensorData) {
-		var obj = JSON.parse(sensorData);
-		$scope.sensors[obj.idx] = obj;
+		var sensor = JSON.parse(sensorData);
+
+		var dataReceived = sensor.data;
+		sensor.data = [];
+		
+		$.each(dataReceived, function(idx, data){
+			var aData = {};
+			var aUnit = {};
+			aData.value = data.data / 100;
+			aUnit.id = data.unit_ID;
+			aUnit.value = unitConverter[aUnit.id];
+			aData.unit = aUnit;
+			sensor.data.push(aData);
+		});
+
+		$scope.sensors[sensor.idx] = sensor;
 		$scope.lastUpdate = new Date().toString();
 	});
 	
 	$scope.openChart = function (sensor){
 		socket.emit("getAllDataForSensor", JSON.stringify(sensor));
-		//displaySensor(sensor);
 	}
 	socket.on("sensorAllData", function (sensorAllData) {
 		var sensorData = JSON.parse(sensorAllData);

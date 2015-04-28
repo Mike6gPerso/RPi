@@ -73,11 +73,11 @@ io.sockets.on('connection', function (socket) {
 	});
 	
 	socket.on('getDataForSensor', function (sensor) {
-		console.log(sensor);
+		//console.log(sensor);
 		var obj = JSON.parse(sensor);
-		var sqlSensorData = "Select distinct data, unit \
+		var sqlSensorData = "Select distinct data, unit_ID \
 		from data, units, \
-		( select timestamp as last_date from data order by timestamp desc limit 1) T1 \
+		( select timestamp as last_date from data where sensor_ID = " + obj.id + " and group_ID = " + obj.group_ID +" order by timestamp desc limit 1) T1 \
 		where data.unit_ID = units.id and sensor_ID = " + obj.id + " and group_ID = " + obj.group_ID +" \
 		and data.timestamp = T1.last_date \
 		order by timestamp desc;";
