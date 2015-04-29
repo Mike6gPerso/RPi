@@ -70,5 +70,35 @@ body {
 #sensorData > div.dataValue {
 	display:inline-block;
 	padding: 5px 0px;
-	width:70%;
+	width:74%;
+}
+
+#sensorData > div.dataValue > span {
+	padding-left: 5px;
+}
+
+#displayChart {
+	display:inline-block;
+	width:100%;
+}
+
+#displayChart > div {
+	float: right;
+	border: 2px solid transparent;
+	border-radius: 50%;
+	margin-right: 10%;
+	display: inline-block;
+	width:25px;
+	height: 25px;
+}
+
+#displayChart > div > div {
+	display: inline-block;
+	margin-top: 4px;
+	margin-left: 1px;
+}
+
+#displayChart > div.focus {
+	border-color: black;
+	cursor: pointer;
 }
