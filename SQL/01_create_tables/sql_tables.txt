@@ -22,7 +22,7 @@ CREATE TABLE units
 	name TEXT NOT NULL,
 	unit TEXT NOT NULL
 );
-CREATE TABLE data
+CREATE TABLE data3
 (
         timestamp TEXT,
         data INTEGER,
@@ -31,7 +31,8 @@ CREATE TABLE data
         unit_ID INTEGER,
         FOREIGN KEY(unit_ID) REFERENCES units(id),
         FOREIGN KEY(sensor_ID) REFERENCES sensors(id),
-	FOREIGN KEY (group_ID) REFERENCES groups(id);
+	FOREIGN KEY (group_ID) REFERENCES groups(id),
+	PRIMARY KEY (timestamp, sensor_ID, group_ID, unit_ID)
 );
 
 CREATE INDEX idx_data_timestamp_desc_1 on data(timestamp DESC);
