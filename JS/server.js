@@ -7,7 +7,7 @@ var fs = require('fs');
 
 /////////////////////////////////////////
 //DB
-var file ="../SQL/temp.db";
+var file ="../SQL/temp_fakeData.sl3";
 var sqlite3 = require("sqlite3").verbose();
 var db = new sqlite3.Database(file);
 
