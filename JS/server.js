@@ -7,12 +7,13 @@ var fs = require('fs');
 
 /////////////////////////////////////////
 //DB
+//var file ="../virtualWire/temp.db";
 var file ="../SQL/temp_fakeData.sl3";
 var sqlite3 = require("sqlite3").verbose();
 var db = new sqlite3.Database(file);
 
 //Folders
-//var dataFolder = "/home/pi/virtualWire/data/";
+var dataFolder = "/home/pi/virtualWire/data/";
 
 db.serialize(function() {
   
@@ -48,7 +49,6 @@ function isDataFile(element) {
 
 
 io.sockets.on('connection', function (socket) {
-
 	// when the client emits 'sendchat', this listens and executes
 	/*
 	socket.on('getData', function (data) {
@@ -73,7 +73,6 @@ io.sockets.on('connection', function (socket) {
 	});
 	
 	socket.on('getDataForSensor', function (sensor) {
-		//console.log(sensor);
 		var obj = JSON.parse(sensor);
 		var sqlSensorData = "Select distinct data, unit_ID \
 		from data, units, \

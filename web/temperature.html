@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html>
 
-	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+	<!-- <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
 	<script src="https://cdn.socket.io/socket.io-1.2.1.js"></script>
 	<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/amcharts/3.13.0/amcharts.js" type="text/javascript"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/amcharts/3.13.0/serial.js" type="text/javascript"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/amcharts/3.13.0/serial.js" type="text/javascript"></script> -->
+	<script src="lib/socket.io-1.2.1.js"></script>
+	<script src="lib/angular-1.3.14.min.js"></script>
+	<script src="lib/jquery-1.11.1.js"></script>
+	<script src="lib/amcharts.js"></script>
+	<script src="lib/amcharts.serial.js"></script>
+
 	<script src="temperature.js" type="text/javascript"></script>
 
 	<link rel="stylesheet" type="text/css" href="temperature.css" />
@@ -21,11 +27,6 @@
 		</div>
 		<div id="app">
 			<div ng-app="sensorsApp">
-				<div ng-controller="SensorGlobal">
-					<div id="lastUpdateDiv" style="color:red">{{lastUpdate}}</div>
-					<div id="tempDataDiv">{{tempData}}</div>
-					<div id="humidityDataDiv">{{humidityData}}</div>
-				</div>
 				<div ng-controller="SensorListCtrl">
 					<div id="sensors">
 						<div id="sensor" ng-repeat="sensor in sensors">
@@ -34,29 +35,45 @@
 							</div>
 							<div id="sensorDatas">
 								<div class="sensorLocation">loc: {{sensor.name}}</div>
-								<div id="sensorData" ng-repeat="data in sensor.data">
-									<div class="dataIcon">
-										<div ng-if="data.unit.id == 1" class="icon-temperatire"></div>
-										<div ng-if="data.unit.id == 2" class="icon-hail-inv"></div>
+								<div id="sensorData">
+									<div ng-if="sensor.data.length > 0" ng-repeat="data in sensor.data">
+										<div class="dataIcon">
+											<div ng-if="data.unit.id == 1" class="icon-temperatire"></div>
+											<div ng-if="data.unit.id == 2" class="icon-droplet"></div>
+											<div ng-if="data.unit.id == 4" class="icon-prison"></div>
+										</div>
+										<div class="dataValue">
+											<span ng-if="data.unit.id != 4">{{data.value}} {{data.unit.value}}</span>
+											<span ng-if="data.unit.id == 4"> {{data.unit.value}}</span>
+										</div>
 									</div>
-									<div class="dataValue">
-										<span>{{data.value}} {{data.unit.value}}</span>
+									<div ng-if="sensor.data.length == 0">
+										<div class="dataIcon">
+											<div class="icon-attention"></div>
+										</div>
+										<div class="dataValue">
+											<span>No Data</span>
+										</div>
 									</div>
 								</div>
 							</div>
 							<div id="displayChart">
 								<div
-									ng-class="{focus: hover}" 
-     								ng-mouseenter="hover = true"
-     								ng-mouseleave="hover = false"
+									ng-if="sensor.data.length > 0"
+									ng-class="{focus: sensor.chartDisplayed}"
+									class="circle"
      								ng-click="openChart(sensor)">
-     								<div class="icon-chart-area"></div>
+     								<div class="icon-chart-bar-1"></div>
      							</div>
 							</div>
 						</div>
 					</div>
 				</div>
-				<div id="chartdiv" style="width:100%; height:500px;"></div>
+				<div ng-controller="ChartController">
+					<div ng-repeat="chart in chartList" ng-style="getStyle()">
+						<div style="height:500px;" id="chart{{chart.id}}"></div>
+					</div>
+				</div>
 				</div>
 			</div>
 		</div>

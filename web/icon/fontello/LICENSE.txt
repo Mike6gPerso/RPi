@@ -1,13 +1,13 @@
 Font license info
 
 
-## Meteocons
+## Entypo
 
-   Copyright (C) 2012 by Alessio Atzeni
+   Copyright (C) 2012 by Daniel Bruce
 
-   Author:    Alessio Atzeni
+   Author:    Daniel Bruce
    License:   SIL (http://scripts.sil.org/OFL)
-   Homepage:  http://www.alessioatzeni.com
+   Homepage:  http://www.entypo.com
 
 
 ## Typicons
@@ -19,6 +19,15 @@ Font license info
    Homepage:  http://typicons.com/
 
 
+## Iconic
+
+   Copyright (C) 2012 by P.J. Onori
+
+   Author:    P.J. Onori
+   License:   SIL (http://scripts.sil.org/OFL)
+   Homepage:  http://somerandomdude.com/work/iconic/
+
+
 ## Font Awesome
 
    Copyright (C) 2012 by Dave Gandy
@@ -26,5 +35,23 @@ Font license info
    Author:    Dave Gandy
    License:   SIL ()
    Homepage:  http://fortawesome.github.com/Font-Awesome/
+
+
+## MFG Labs
+
+   Copyright (C) 2012 by Daniel Bruce
+
+   Author:    MFG Labs
+   License:   SIL (http://scripts.sil.org/OFL)
+   Homepage:  http://www.mfglabs.com/
+
+
+## Maki
+
+   Copyright (C) Mapbox, LCC
+
+   Author:    Mapbox
+   License:   BSD (https://github.com/mapbox/maki/blob/gh-pages/LICENSE.txt)
+   Homepage:  http://mapbox.com/maki/
 
 
