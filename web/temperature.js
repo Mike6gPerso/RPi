@@ -1,7 +1,7 @@
 var sensorsApp = angular.module('sensorsApp', []);
 
 var unitConverter = {
-	"1":"C",
+	"1":"\xB0C",
 	"2":"%",
 	"3":"V",
 	"4":"OPEN/CLOSE" //not used ... switch hard coded in the data treatment
@@ -10,7 +10,7 @@ var unitConverter = {
 var getChart = undefined;
 
 //AmCharts.ready(
-	getChart = function (chartData) {
+	getChartSerial = function (chartData) {
 	    // SERIAL CHART
 	    var chart = new AmCharts.AmSerialChart();
 	    chart.pathToImages = "./amcharts/images/";
@@ -61,7 +61,7 @@ var getChart = undefined;
 		tempAxis.position = "left";
 		tempAxis.title = "Temperature";
 		tempAxis.id = "Temperature";
-		tempAxis.unit = " °C";
+		tempAxis.unit = " \xB0C";
 		chart.addValueAxis(tempAxis);
 		
 		//Value Axes
@@ -114,6 +114,42 @@ var getChart = undefined;
 	}	
 //);
 
+
+getChart = function (chartData) {
+	var chart = new AmCharts.AmStockChart();
+    chart.pathToImages = "./amcharts/images/";
+	var dataSet = new AmCharts.DataSet();
+    dataSet.dataProvider = chartData;
+    dataSet.categoryField = "datetime";
+    dataSet.fieldMappings = [{fromField:"datetime", toField:"datetime"}, {fromField:"temperature", toField:"temperature"}, {fromField: "humidity", toField:"humidity"}];
+
+	//chart.addListener("dataUpdated", zoomChart);
+	//chart.addListener("rendered", zoomChart);
+
+	chart.dataSets = [dataSet];
+
+	var stockPanel = new AmCharts.StockPanel();
+    chart.panels = [stockPanel];
+
+	var graph = new AmCharts.StockGraph();
+    graph.valueField = "temperature";
+    graph.type = "line";
+    graph.fillAlphas = 1;
+    graph.title = "MyGraph"; 
+    stockPanel.addStockGraph(graph);
+
+    //chart.write("chartdiv");
+
+    //ScrollBar
+    var chartScrollbarSettings = new AmCharts.ChartScrollbarSettings();
+	chartScrollbarSettings.graph = graph;
+	chartScrollbarSettings.graphType = "line";
+	chart.chartScrollbarSettings = chartScrollbarSettings;
+
+
+	return chart;
+
+}
 
 //Encapsulate Socket in Angular
 sensorsApp.factory('socket', function ($rootScope) {
@@ -191,10 +227,13 @@ sensorsApp.controller('ChartController', function($scope) {
 		}
 		else {
 			removeFromArray(chartInfos.id);
+			setTimeout(refreshAllChart, 0);
+			/*
 			var interval = setInterval(function() {
 				refreshAllChart();
 				clearInterval(interval);
 			}, 0);
+*/
 		}
 	})
 
