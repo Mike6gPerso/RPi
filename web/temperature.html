@@ -31,10 +31,9 @@
 					<div id="sensors">
 						<div id="sensor" ng-repeat="sensor in sensors">
 							<div id="sensorName">
-								<div class="sensorName">Sensor {{sensor.id}}</div>
+								<div class="sensorName" title="{{sensor.location}}">{{sensor.name}}</div>
 							</div>
 							<div id="sensorDatas">
-								<div class="sensorLocation">loc: {{sensor.name}}</div>
 								<div id="sensorData">
 									<div ng-if="sensor.data.length > 0" ng-repeat="data in sensor.data">
 										<div class="dataIcon">
