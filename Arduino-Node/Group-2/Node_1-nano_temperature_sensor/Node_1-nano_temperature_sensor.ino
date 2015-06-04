@@ -8,6 +8,9 @@
 #define GROUP_ID 2 // Temperature + Humidity sensor
 #define NODE_ID  1
 
+// Arduino Pro Mini
+// ATMega328 3,3V, 8MHz
+
 #define DHTPIN 2 // what pin we're connected to
 // Uncomment whatever type you're using!
 //#define DHTTYPE DHT11 // DHT 11
@@ -20,7 +23,7 @@
 // Connect pin 4 (on the right) of the sensor to GROUND
 // Connect a 10K resistor from pin 2 (data) to pin 1 (power) of the sensor
 // Initialize DHT sensor for normal 16mhz Arduino
-DHT dht(DHTPIN, DHTTYPE);
+DHT dht(DHTPIN, DHTTYPE,4);
 // NOTE: For working with a faster chip, like an Arduino Due or Teensy, you
 // might need to increase the threshold for cycle counts considered a 1 or 0.
 // You can do this by passing a 3rd parameter for this threshold. It's a bit
@@ -81,8 +84,10 @@ void loop() {
     delay(1000 + NODE_ID);
     //delay(4000);
     // Enter power down state for 8 s with ADC and BOD module disabled
-    //for(int i = 0; i < 7; i++) //56 sec
+    for(int i = 0; i < 7; i++) //56 sec
      LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF); 
+     
+     // delay(1000);
 
     delay(100 + NODE_ID);
 }
