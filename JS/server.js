@@ -7,7 +7,8 @@ var fs = require('fs');
 
 /////////////////////////////////////////
 //DB
-var file ="../virtualWire/temp.db";
+//var file ="../virtualWire/temp.db";
+var file ="../SQL/temp_fakeData.sl3";
 var sqlite3 = require("sqlite3").verbose();
 var db = new sqlite3.Database(file);
 
@@ -66,17 +67,20 @@ io.sockets.on('connection', function (socket) {
 	//var sensors = [];
 	db.all(sqlSensorsList, function(err, rows) {
 		//sensors.push.apply(sensors, rows);
+		console.log("emit list of sensors");
+		console.log(rows);
 		socket.emit("sensorsList", JSON.stringify(rows));
 	});
 	
 	socket.on('getDataForSensor', function (sensor) {
 		var obj = JSON.parse(sensor);
-		var sqlSensorData = "Select distinct data, unit \
+		var sqlSensorData = "Select distinct data, unit_ID \
 		from data, units, \
-		( select timestamp as last_date from data order by timestamp desc limit 1) T1 \
+		( select timestamp as last_date from data where sensor_ID = " + obj.id + " and group_ID = " + obj.group_ID +" order by timestamp desc limit 1) T1 \
 		where data.unit_ID = units.id and sensor_ID = " + obj.id + " and group_ID = " + obj.group_ID +" \
 		and data.timestamp = T1.last_date \
 		order by timestamp desc;";
+		console.log(sqlSensorData);
 		db.all(sqlSensorData, function (err, data) {
 			obj.data = data;
 			socket.emit("sensorData", JSON.stringify(obj));
@@ -92,6 +96,7 @@ io.sockets.on('connection', function (socket) {
 		where data.unit_ID = units.id and sensor_ID = " + obj.id + " and group_ID = " + obj.group_ID +" \
 		and data.timestamp = T1.last_date \
 		order by timestamp desc;";
+		and data.timestamp > ((strftime('%s','now')) - (86400 *5)) \
 		*/
 		var sqlSensorData = "Select distinct data.timestamp as datetime, data.data as temperature, Hum.data as humidity \
 		from data, units, \
@@ -99,7 +104,6 @@ io.sockets.on('connection', function (socket) {
 			where id = " + obj.id + " and group_ID = " + obj.group_ID + " \
 		) T2, data Hum  \
 		where data.unit_ID = units.id and data.sensor_ID = T2.id and data.group_ID = T2.group_ID \
-		and data.timestamp > ((strftime('%s','now')) - (86400 *5)) \
 		and data.unit_ID = 1	\
 		and Hum.unit_ID = 2 and Hum.group_ID = T2.group_ID \
 		and Hum.sensor_ID = T2.id \
@@ -111,6 +115,7 @@ io.sockets.on('connection', function (socket) {
 				console.log(err);
 			//console.log("got data !");
 			obj.data = data;
+			console.log(data);
 			socket.emit("sensorAllData", JSON.stringify(obj));
 		});
 	});
@@ -129,11 +134,11 @@ io.sockets.on('connection', function (socket) {
 	
 	//// fs.watch ////
 	
-	fs.watch(dataFolder, { persistent: true, recursive: true }, function( event, filename) {
+	/*fs.watch(dataFolder, { persistent: true, recursive: true }, function( event, filename) {
 		db.each("SELECT T1.timestamp as Time, T1.data as T, T2.data as H from (SELECT * FROM data where unit_ID=1 order by timestamp DESC limit 1 ) as T1, (SELECT data FROM data where unit_ID=2 order by timestamp DESC limit 1) as T2", function(err, row) {
 			socket.emit("currentTemp", "{\"Time\": \"" + row.Time +"\", \"T\":\"" + row.T + "\", \"H\":\"" + row.H +"\"}");
 		});
-	});
+	});*/
 	db.each("SELECT T1.timestamp as Time, T1.data as T, T2.data as H from (SELECT * FROM data where unit_ID=1 order by timestamp DESC limit 1 ) as T1, (SELECT data FROM data where unit_ID=2 order by timestamp DESC limit 1) as T2", function(err, row) {
 			socket.emit("currentTemp", "{\"Time\": \"" + row.Time +"\", \"T\":\"" + row.T + "\", \"H\":\"" + row.H +"\"}");
 	});

@@ -1,311 +1,91 @@
-<html lang="en" ng-app="sensorsApp">
+<!DOCTYPE html>
+<html>
 
-<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
-<script src="https://cdn.socket.io/socket.io-1.2.1.js"></script>
-<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-<script src="./amcharts/amcharts.js" type="text/javascript"></script>
-<script src="./amcharts/serial.js" type="text/javascript"></script>
-<script src="./amcharts/amstock.js" type="text/javascript"></script>
-<script type="text/javascript">
-//be sure to replace the string with the IP address of your PI
-//if you hit it from outside your LAN then put your public IP address and
-//enable port forwarding on your router such that all WWW (port 80) traffic goes to your internal PI address
-var socket = io.connect('192.168.1.20', {'connect timeout': 1000});
- 
-// on connection to server, ask for user's name with an anonymous callback
-socket.on('connect', function(){
-// call the server-side function 'getData'
-//socket.emit('getData', "");
-//socket.emit('getTemp', "");
-//socket.emit('getHumidity', "");
-socket.on("currentTemp", function (data) {
-	var obj = JSON.parse(data);
-	var longTime = parseInt(obj.Time) * 1000;
-	$('#lastUpdateDiv').html(new Date(longTime).toString());
-	$('#tempDataDiv').html((obj.T/100) + " C");
-	$('#humidityDataDiv').html((obj.H/100) + " %");
-});
+	<!-- <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+	<script src="https://cdn.socket.io/socket.io-1.2.1.js"></script>
+	<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/amcharts/3.13.0/amcharts.js" type="text/javascript"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/amcharts/3.13.0/serial.js" type="text/javascript"></script> -->
+	<script src="lib/socket.io-1.2.1.js"></script>
+	<script src="lib/angular-1.3.14.min.js"></script>
+	<script src="lib/jquery-1.11.1.js"></script>
+	<script src="lib/amcharts.js"></script>
+	<script src="lib/amcharts.serial.js"></script>
 
-var sensors = [];
-function createSensor(sensor) {
-	//var sensorDiv = $("<div class=\"sensor\" id=\"sensor_"+ sensor.group_ID + "-" + sensor.id +"\"><div class=\"name\">"+sensor.name+"</div></div>");
-	var sensorDiv = $("<div class=\"sensor\" id=\"sensor_" + sensor.group_ID + "-" + sensor.id + "\"><div class=\"name\">"+sensor.name+"</div><div name=\"data\"></div></div>");
-	$("#sensors").append(sensorDiv);
-	sensors.push({id: sensor.id, group_ID: sensor.group_ID});
-	socket.emit("getDataForSensor", JSON.stringify(sensors[sensors.length-1]));
-}
-// Removed because added in the angular part
-/*
-socket.on("sensorsList", function(sensorsList) {
-	//$('#debug').html(sensorsList);
-	var sensors = JSON.parse(sensorsList);
-	$.each(sensors, function(key, sensor) {
-		$('#debug').append(sensor);
-		createSensor(sensor);
-	});
-});
+	<script src="temperature.js" type="text/javascript"></script>
 
-socket.on("sensorData", function (sensorData) {
-	var obj = JSON.parse(sensorData);
-	$.each(obj.data, function(key, data) {
-		$("#sensor_" + obj.group_ID + "-" + obj.id + " [name=\"data\"]").append(data.data / 100 +" " +  data.unit + "<br />");
-	});
-	$('#debug').html(sensorData);
-});
-*/
-socket.on("mainPageInfo", function (data) {
-	var obj = JSON.parse(data);
-	$('#tempDataDiv').html(data);
-	/*
-	var longTime = parseInt(obj.Time) * 1000;
-	$('#lastUpdateDiv').html(new Date(longTime).toString());
-	$('#tempDataDiv').html((obj.T/100) + " C");
-	$('#humidityDataDiv').html((obj.H/100) + " %");
-	*/
-});
+	<link rel="stylesheet" type="text/css" href="temperature.css" />
+	<link rel="stylesheet" type="text/css" href="icon/fontello/css/fontello.css" />
 
+	<head>
+		<title>Micka's home</title>
+	</head>
 
-});
-/*
-socket.on('tempData', function (data) {
-	$('#tempDataDiv').html("");
-	$.each(data.split('\n'), function (index, value){
-			$('#tempDataDiv').append(value + "<br />");
-		});
-	
-	$('#lastUpdateDiv').html("Last Update: " +  new Date());
-});
-
-*/
-var chart;
-var chartData = {};
-var sensorsApp = angular.module('sensorsApp', []);
-
-sensorsApp.controller('SensorListCtrl', function ($scope, socket) {
-	socket.on("sensorsList", function (data) {
-		var sensors_local = JSON.parse(data);
-		$scope.sensors = sensors_local;
-		var idx = 0;
-		$.each(sensors_local, function (key, data) {
-			data.idx = idx++;
-			socket.emit("getDataForSensor", JSON.stringify(data));
-		});
-		
-	});
-	socket.on("sensorData", function (sensorData) {
-	var obj = JSON.parse(sensorData);
-	$scope.sensors[obj.idx] = obj;
-	$scope.lastUpdate = new Date().toString();
-	/*
-	$.each(obj.data, function(key, data) {
-		//alert("received data");
-		$scope.sensors[obj.idx].data.push(data);
-		//$("#sensor_" + obj.group_ID + "-" + obj.id + " [name=\"data\"]").append(data.data / 100 +" " +  data.unit + "<br />");
-	});
-	*/
-	//$('#debug').html(sensorData);
-	});
-	
-  /*
-  $scope.sensors = [
-    {'id' : 1,
-	 'name': 'Salon',
-     'data': [{'data': 2000, 'unit' : '°C'},
-			  {'data': 5450, 'unit' : '%'}]},
-    {'id' : 2,
-	 'name': 'Cuisine',
-     'data': [{'data': 2000, 'unit' : '°C'},
-			  {'data': 5500, 'unit' : '%'}]}
-  ];
-  */
-	$scope.openChart = function (sensor){
-		socket.emit("getAllDataForSensor", JSON.stringify(sensor));
-	}
-	socket.on("sensorAllData", function (sensorAllData) {
-		var sensorData = JSON.parse(sensorAllData);
-		//sensorData.data = sensorData.data.splice(sensorData.data.length -200, sensorData.data.length);
-		$.each(sensorData.data, function (index, value) {
-			value.datetime = new Date(value.datetime * 1000);
-			value.temperature = value.temperature / 100;
-			value.humidity = value.humidity / 100;
-		});
-		chart.dataProvider = sensorData.data;
-		chart.validateData();
-	});
-});
-
-//Encapsulate Socket in Angular
-sensorsApp.factory('socket', function ($rootScope) {
-  var socket = io.connect();
-  return {
-    on: function (eventName, callback) {
-      socket.on(eventName, function () {  
-        var args = arguments;
-        $rootScope.$apply(function () {
-          callback.apply(socket, args);
-        });
-      });
-    },
-    emit: function (eventName, data, callback) {
-      socket.emit(eventName, data, function () {
-        var args = arguments;
-        $rootScope.$apply(function () {
-          if (callback) {
-            callback.apply(socket, args);
-          }
-        });
-      })
-    }
-  };
-});
-
-
-AmCharts.ready(function () {
-                // SERIAL CHART
-                chart = new AmCharts.AmSerialChart();
-                chart.pathToImages = "./amcharts/images/";
-                chart.dataProvider = chartData;
-                chart.categoryField = "datetime";
-				chart.addListener("dataUpdated", zoomChart);
-				chart.dataDateFormat = "YYYY-MM-DD";
-
-				// GRAPH Humidity
-				var graphHum = new AmCharts.AmGraph();
-				graphHum.valueField = "humidity";
-				graphHum.type = "line";
-				graphHum.fillColors = "#01CBCE";
-				graphHum.fillAlphas = 1;
-				graphHum.lineColor = "#01CBCE";
-				graphHum.columnWidth = 20;
-				graphHum.valueAxis = "Humidity";
-				graphHum.bullet = "round";
-				graphHum.balloonText = "[[category]]<br><b><span style='font-size:14px;'>value: [[value]]</span></b>";
-                
-				graphHum.hideBulletsCount = 50; // this makes the chart to hide bullets when there are more than 50 series in selection
-				chart.addGraph(graphHum);
-				
-				// GRAPH Temperature
-				var graph = new AmCharts.AmGraph();
-				graph.valueField = "temperature";
-				graph.type = "smoothedLine";
-				graph.valueAxis = "Temperature";
-				graph.bullet = "round";
-				graph.balloonText = "[[category]]<br><b><span style='font-size:14px;'>value: [[value]]</span></b>";
-                
-				graph.hideBulletsCount = 50; // this makes the chart to hide bullets when there are more than 50 series in selection
-				chart.addGraph(graph);
-				
-				// AXES
-                // category
-				
-                var categoryAxis = chart.categoryAxis;
-                categoryAxis.parseDates = true; // as our data is date-based, we set parseDates to true
-                categoryAxis.minPeriod = "ss"; //
-				categoryAxis.maxSeries = 50;
-				categoryAxis.groupToPeriods = ["mm", "10mm", "30mm", "hh", "DD", "WW", "MM", "YYYY"];
-				
-				//Value Axes
-				var tempAxis = new AmCharts.ValueAxis();
-				tempAxis.minimum = 10;
-				tempAxis.maximum = 30;
-				tempAxis.position = "left";
-				tempAxis.title = "Temperature";
-				tempAxis.id = "Temperature";
-				tempAxis.unit = " °C";
-				chart.addValueAxis(tempAxis);
-				
-				//Value Axes
-				var humAxis = new AmCharts.ValueAxis();
-				humAxis.minimum = 0;
-				humAxis.maximum = 100;
-				humAxis.position = "right";
-				humAxis.title = "Humidité";
-				humAxis.id = "Humidity";
-				humAxis.unit = "%";
-				chart.addValueAxis(humAxis);
-				// CURSOR
-                chartCursor = new AmCharts.ChartCursor();
-                chartCursor.cursorPosition = "mouse";
-				chartCursor.categoryBalloonDateFormat = "JJ:NN:SS";
-                chart.addChartCursor(chartCursor);
-				
-				// PERIOD
-				/*
-				var periodSelector = new AmCharts.PeriodSelector();
-				periodSelector.periods = [
-				   {period:"DD", count:1, label:"1 day"}, 
-				   {period:"DD", selected:true, count:5, label:"5 days"},
-				   {period:"MM", count:1, label:"1 month"},
-				   {period:"YYYY", count:1, label:"1 year"},
-				   {period:"YTD", label:"YTD"},
-				   {period:"MAX", label:"MAX"}
-				];
-				chart.periodSelector = periodSelector;
-				*/
-
-                // SCROLLBAR
-                var chartScrollbar = new AmCharts.ChartScrollbar();
-                chartScrollbar.graph = graph;
-                chartScrollbar.scrollbarHeight = 40;
-                chartScrollbar.color = "#FFFFFF";
-                chartScrollbar.autoGridCount = true;
-                chart.addChartScrollbar(chartScrollbar);
-				
-				// WRITE
-                chart.write("chartdiv");
-				chart.addListener("rendered", zoomChart);
-
-				
-				zoomChart();
-				function zoomChart(){
-					chart.zoomToIndexes(chart.dataProvider.length - 100, chart.dataProvider.length - 1);
-				}
-				
-            });
-
-
-
-
-</script>
-<style>
-body {
-	font-family: Arial;
-}
-.sensor {
-	position: absolute;
-	text-align: center;
-	//border: 1px solid red;
-	width : 80px;
-	padding: 5px;
-	top: 100px;
-	left: 280px;
-}
-.name {
-	background: black;
-	color: white;
-	padding: 5px;	
-}
-</style>
-<body ng-controller="SensorListCtrl">
-<div id="lastUpdateDiv" style="color:red">{{lastUpdate}}</div>
-<div id="tempDataDiv"></div>
-<div id="humidityDataDiv"></div>
-<div id="sensors"></div>
-<div id="debug"></div>
-
-	<ul>
-    <li ng-repeat="sensor in sensors">
-      <span>{{sensor.name}}</span>
-	  <button ng-click="openChart(sensor)">Chart</button>
-      <ul>
-		<li ng-repeat="data in sensor.data">
-		<span>{{data.data / 100}} {{data.unit}}</span>
-		</li>
-	  </ul>
-    </li>
-  </ul>
-  <div>{{someField}}</div>
-  <div id="chartdiv" style="width:100%; height:500px;"></div>
-  </body>
+	<body>
+		<div id="header">
+			<div class="title">Micka's Home Sensors</div>
+		</div>
+		<div id="app">
+			<div ng-app="sensorsApp">
+				<div ng-controller="SensorListCtrl">
+					<div id="sensors">
+						<div id="sensor" ng-repeat="sensor in sensors">
+							<div id="sensorName">
+								<div class="sensorName" title="{{sensor.location}}">{{sensor.name}}
+                                                                    <div id="displayChart">
+                                                                        <div
+                                                                                ng-if="sensor.data.length > 0"
+                                                                                ng-class="{focus: sensor.chartDisplayed}"
+                                                                                class="circle"
+                                                                        ng-click="openChart(sensor)">
+                                                                            <div class="icon-chart-bar-1"></div>
+                                                                        </div>
+                                                                    </div>
+     								</div>
+							</div>
+							<div id="sensorDatas">
+								<div id="sensorData">
+									<div ng-if="sensor.data.length > 0" ng-repeat="data in sensor.data">
+										<div class="dataIcon">
+											<div ng-if="data.unit.id == 1" class="icon-temperature"></div>
+											<div ng-if="data.unit.id == 2" class="icon-droplet"></div>
+											<div ng-if="data.unit.id == 4" class="icon-prison"></div>
+										</div>
+										<div class="dataValue">
+											<span ng-if="data.unit.id != 4">{{data.value}} {{data.unit.value}}</span>
+											<span ng-if="data.unit.id == 4"> {{data.unit.value}}</span>
+										</div>
+									</div>
+									<div ng-if="sensor.data.length == 0">
+										<div class="dataIcon">
+											<div class="icon-attention"></div>
+										</div>
+										<div class="dataValue">
+											<span>No Data</span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<!--div id="displayChart">
+								<div
+									ng-if="sensor.data.length > 0"
+									ng-class="{focus: sensor.chartDisplayed}"
+									class="circle"
+     								ng-click="openChart(sensor)">
+     								<div class="icon-chart-bar-1"></div>
+     							</div>
+							</div-->
+						</div>
+					</div>
+				</div>
+				<div ng-controller="ChartController">
+					<div ng-repeat="chart in chartList" ng-style="getStyle()">
+						<div style="height:500px;" id="chart{{chart.id}}"></div>
+					</div>
+				</div>
+				</div>
+			</div>
+		</div>
+	 </body>
 </html>
 

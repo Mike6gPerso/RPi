@@ -1,0 +1,122 @@
+body {
+	font-family: Arial;
+	width : 100%;
+	height: 100%;
+	margin:0px;
+}
+
+#header {
+	position: absolute;
+	width:100%;
+	height: 10%;
+	min-height: 70px;
+	background: -webkit-linear-gradient(#428bca, #4734F7, #FFFFFF); /* For Safari 5.1 to 6.0 */
+  	background: -o-linear-gradient(#428bca, #4734F7, #FFFFFF); /* For Opera 11.1 to 12.0 */
+  	background: -moz-linear-gradient(#428bca, #4734F7, #FFFFFF); /* For Firefox 3.6 to 15 */
+  	background: linear-gradient(#428bca, #4734F7, #FFFFFF); /* Standard syntax */
+}
+
+#header .title {
+	font-size: 30px;
+	text-align: center;
+	margin-top: 15px;
+        color: white;
+}
+
+#app {
+	position: absolute;
+	height: 90%;
+	width:100%;
+	top: 10%;
+}
+
+#sensors #sensor {
+	display: inline-block;
+}
+
+#sensor {
+	width:10%;
+	margin:10px;
+	border: 2px solid #428bca;
+	border-radius:5px;
+}
+
+#sensorName {
+	//border-bottom: 1px solid blue;
+	padding:5px;
+    color: white;
+    background: linear-gradient(#428bca, #FFFFFF); /* Standard syntax */
+}
+
+#sensorName > div.sensorName {
+	text-align: center;
+}
+
+#sensorDatas {
+	display:inline-block;
+	padding-left: 10%;
+	width:100%;
+}
+
+#sensorDatas > .sensorLocation {
+	padding: 5px 0px;
+}
+
+
+#sensorData {
+	display: inline-block;
+	height: 60px;
+	width:100%;
+	overflow-y:auto;
+	overflow-x:hidden;
+}
+
+.dataIcon {
+	display:inline-block;
+	padding: 5px 0px;
+	//width:20%;
+}
+
+.dataValue {
+	display:inline-block;
+	padding: 5px 0px;
+	width:74%;
+}
+
+.dataValue > span {
+	padding-left: 5px;
+}
+
+#displayChart {
+	display:inline-block;
+	width:100%;
+	height: 25px;
+	margin:2px;
+}
+
+#displayChart > div {
+	float: right;
+	border: 2px solid transparent;
+	border-radius: 50%;
+	margin-right: 5%;
+	display: inline-block;
+	width:25px;
+	height: 25px;
+}
+
+#displayChart > div > div {
+	display: inline-block;
+	margin-top: 4px;
+	margin-left: 1px;
+}
+
+#displayChart > div.focus {
+	border-color: white;
+	cursor: pointer;
+	padding-right: 2px;
+}
+
+#displayChart > div.circle:hover {
+	color:#428bca;
+	background: #FFF;
+}
