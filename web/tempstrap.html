@@ -65,7 +65,6 @@
 		<!-- Main Area -->
 
 		<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-			
 			<div id="sensors" ng-if="selectedSensor == null">
 						<div id="sensor" ng-repeat="sensor in sensors">
 							<div id="sensorName">
@@ -111,31 +110,38 @@
      							</div>
 							</div-->
 						</div>
-				<div ng-controller="ChartController">
+				<div id="charts" ng-controller="ChartController">
 					<div ng-repeat="chart in chartList" ng-style="getStyle()">
 						<div style="height:500px;" id="chart{{chart.id}}"></div>
 					</div>
 				</div>
 			</div>
 			
-			<h1>{{ selectedSensor.name }} <small>{{ selectedSensor.location }}</small></h1>
-			<div ng-if="selectedSensor.data.length > 0" ng-repeat="data in selectedSensor.data">
-				<div class="dataIcon">
-					<div ng-class="{ 'icon-temperature': data.unit.id==1, 'icon-droplet':data.unit.id==2, 'icon-prison':data.unit.id==4 }"></div>
+			<div id="sensors" ng-if="selectedSensor != null">
+				<h1>{{ selectedSensor.name }} <small>{{ selectedSensor.location }}</small></h1>
+				<div ng-if="selectedSensor.data.length > 0" ng-repeat="data in selectedSensor.data">
+					<div class="dataIcon">
+						<div ng-class="{ 'icon-temperature': data.unit.id==1, 'icon-droplet':data.unit.id==2, 'icon-prison':data.unit.id==4 }"></div>
+					</div>
+					<div class="dataValue">
+						<span ng-if="data.unit.id != 4">{{data.value}} {{data.unit.value}}</span>
+						<span ng-if="data.unit.id == 4"> {{data.unit.value}}</span>
+					</div>
 				</div>
-				<div class="dataValue">
-					<span ng-if="data.unit.id != 4">{{data.value}} {{data.unit.value}}</span>
-					<span ng-if="data.unit.id == 4"> {{data.unit.value}}</span>
+				<div ng-if="selectedSensor.data.length == 0">
+					<div class="dataIcon">
+						<div class="icon-attention"></div>
+					</div>
+					<div class="dataValue">
+						<span>No Data</span>
+					</div>
 				</div>
-			</div>
-			<div ng-if="selectedSensor.data.length == 0">
-				<div class="dataIcon">
-					<div class="icon-attention"></div>
+				<div id="charts" ng-controller="ChartController">
+					<div ng-repeat="chart in chartList" ng-style="getStyle()">
+						<div style="height:500px;" id="chart{{chart.id}}"></div>
+					</div>
 				</div>
-				<div class="dataValue">
-					<span>No Data</span>
-				</div>
-			</div>
+			</div>	
 
 </div>
 

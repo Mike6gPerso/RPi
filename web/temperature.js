@@ -107,7 +107,8 @@ var getChart = undefined;
 
 		zoomChart();
 		function zoomChart(){
-			chart.zoomToIndexes(/*chart.dataProvider.length - 100*/0, chart.dataProvider.length - 1);
+			//if(chart.dataProvider != null)
+				chart.zoomToIndexes(/*chart.dataProvider.length - 100*/0, ( chart.dataProvider != null ? chart.dataProvider.length : 1 )- 1);
 		}
 
 		return chart;
@@ -182,11 +183,12 @@ sensorsApp.controller('ChartController', function($scope) {
 			chartInfos.chart = getChart(chartInfos.data);
 			addInArray(chartInfos);
 			
-			var interval = setInterval(function() {
-				chartInfos.chart.write('chart' + chartInfos.id);
-				refreshAllChart();
-				clearInterval(interval);
-			}, 0);
+			if(chartInfos.chart != null) {
+				var interval = setTimeout(function() {
+					chartInfos.chart.write('chart' + chartInfos.id);
+					refreshAllChart();
+				}, 0);
+			}
 
 		}
 		else {
@@ -310,7 +312,15 @@ sensorsApp.controller('SensorListCtrl', function ($scope, socket) {
 	}
 
 	$scope.selectSensor = function (sensor){
+		//first clear chart for previous sensor
+		if($scope.selectedSensor != null)
+			$scope.selectedSensor.chartDisplayed = false;
+			//$scope.openChart(selectedSensor);
+
 		$scope.selectedSensor = sensor;
+		angular.element($('#charts')).scope().chartList = [];
+		if(sensor != null)
+			$scope.openChart(sensor);
 	}
 	socket.on("sensorAllData", function (sensorAllData) {
 		var sensorData = JSON.parse(sensorAllData);
