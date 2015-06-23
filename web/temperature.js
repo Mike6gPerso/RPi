@@ -239,7 +239,7 @@ sensorsApp.controller('ChartController', function($scope) {
 });*/
 
 sensorsApp.controller('SensorListCtrl', function ($scope, socket) {
-
+	var selectedSensor = null;
 	socket.on("sensorsList", function (data) {
 		var sensors_local = JSON.parse(data);
 		$scope.sensors = sensors_local;
@@ -297,11 +297,20 @@ sensorsApp.controller('SensorListCtrl', function ($scope, socket) {
 	$scope.openChart = function (sensor){
 		if(sensor.chartDisplayed) {
 			sensor.chartDisplayed = false;
+			var chart = {
+                    id: sensor.id,
+                    data: null
+            }
+            $scope.$parent.$broadcast('chartUpdated', chart);
 		} else {
 			sensor.chartDisplayed = true;
+            socket.emit("getAllDataForSensor", JSON.stringify(sensor));
 		}
 
-		socket.emit("getAllDataForSensor", JSON.stringify(sensor));
+	}
+
+	$scope.selectSensor = function (sensor){
+		$scope.selectedSensor = sensor;
 	}
 	socket.on("sensorAllData", function (sensorAllData) {
 		var sensorData = JSON.parse(sensorAllData);

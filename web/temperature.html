@@ -31,13 +31,23 @@
 					<div id="sensors">
 						<div id="sensor" ng-repeat="sensor in sensors">
 							<div id="sensorName">
-								<div class="sensorName" title="{{sensor.location}}">{{sensor.name}}</div>
+								<div class="sensorName" title="{{sensor.location}}">{{sensor.name}}
+                                                                    <div id="displayChart">
+                                                                        <div
+                                                                                ng-if="sensor.data.length > 0"
+                                                                                ng-class="{focus: sensor.chartDisplayed}"
+                                                                                class="circle"
+                                                                        ng-click="openChart(sensor)">
+                                                                            <div class="icon-chart-bar-1"></div>
+                                                                        </div>
+                                                                    </div>
+     								</div>
 							</div>
 							<div id="sensorDatas">
 								<div id="sensorData">
 									<div ng-if="sensor.data.length > 0" ng-repeat="data in sensor.data">
 										<div class="dataIcon">
-											<div ng-if="data.unit.id == 1" class="icon-temperatire"></div>
+											<div ng-if="data.unit.id == 1" class="icon-temperature"></div>
 											<div ng-if="data.unit.id == 2" class="icon-droplet"></div>
 											<div ng-if="data.unit.id == 4" class="icon-prison"></div>
 										</div>
@@ -56,7 +66,7 @@
 									</div>
 								</div>
 							</div>
-							<div id="displayChart">
+							<!--div id="displayChart">
 								<div
 									ng-if="sensor.data.length > 0"
 									ng-class="{focus: sensor.chartDisplayed}"
@@ -64,7 +74,7 @@
      								ng-click="openChart(sensor)">
      								<div class="icon-chart-bar-1"></div>
      							</div>
-							</div>
+							</div-->
 						</div>
 					</div>
 				</div>

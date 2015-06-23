@@ -10,10 +10,10 @@ body {
 	width:100%;
 	height: 10%;
 	min-height: 70px;
-	background: -webkit-linear-gradient(#1F0DBD, #4734F7, #FFFFFF); /* For Safari 5.1 to 6.0 */
-  	background: -o-linear-gradient(#1F0DBD, #4734F7, #FFFFFF); /* For Opera 11.1 to 12.0 */
-  	background: -moz-linear-gradient(#1F0DBD, #4734F7, #FFFFFF); /* For Firefox 3.6 to 15 */
-  	background: linear-gradient(#1F0DBD, #4734F7, #FFFFFF); /* Standard syntax */
+	background: -webkit-linear-gradient(#428bca, #4734F7, #FFFFFF); /* For Safari 5.1 to 6.0 */
+  	background: -o-linear-gradient(#428bca, #4734F7, #FFFFFF); /* For Opera 11.1 to 12.0 */
+  	background: -moz-linear-gradient(#428bca, #4734F7, #FFFFFF); /* For Firefox 3.6 to 15 */
+  	background: linear-gradient(#428bca, #4734F7, #FFFFFF); /* Standard syntax */
 }
 
 #header .title {
@@ -35,17 +35,17 @@ body {
 }
 
 #sensor {
-	width:8%;
+	width:10%;
 	margin:10px;
-	border: 2px solid blue;
+	border: 2px solid #428bca;
 	border-radius:5px;
 }
 
 #sensorName {
-	border-bottom: 1px solid blue;
-	padding:2px;
-        color: white;
-        background-color: blue;
+	//border-bottom: 1px solid blue;
+	padding:5px;
+    color: white;
+    background: linear-gradient(#428bca, #FFFFFF); /* Standard syntax */
 }
 
 #sensorName > div.sensorName {
@@ -55,7 +55,7 @@ body {
 #sensorDatas {
 	display:inline-block;
 	padding-left: 10%;
-	width:90%;
+	width:100%;
 }
 
 #sensorDatas > .sensorLocation {
@@ -65,7 +65,7 @@ body {
 
 #sensorData {
 	display: inline-block;
-	height: 56px;
+	height: 60px;
 	width:100%;
 	overflow-y:auto;
 	overflow-x:hidden;
@@ -74,7 +74,7 @@ body {
 .dataIcon {
 	display:inline-block;
 	padding: 5px 0px;
-	width:20%;
+	//width:20%;
 }
 
 .dataValue {
@@ -111,11 +111,12 @@ body {
 }
 
 #displayChart > div.focus {
-	border-color: black;
+	border-color: white;
 	cursor: pointer;
+	padding-right: 2px;
 }
 
 #displayChart > div.circle:hover {
-	color:white;
-	background: #333;
+	color:#428bca;
+	background: #FFF;
 }
