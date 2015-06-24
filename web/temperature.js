@@ -10,7 +10,7 @@ var unitConverter = {
 var getChart = undefined;
 
 //AmCharts.ready(
-	getChart = function (chartData) {
+	getSerialChart = function (chartData) {
 	    // SERIAL CHART
 	    var chart = new AmCharts.AmSerialChart();
 	    chart.pathToImages = "./amcharts/images/";
@@ -115,6 +115,41 @@ var getChart = undefined;
 	}	
 //);
 
+getChart = function (chartData) {
+	var chart = new AmCharts.AmStockChart();
+    chart.pathToImages = "./amcharts/images/";
+	var dataSet = new AmCharts.DataSet();
+    dataSet.dataProvider = chartData;
+    dataSet.categoryField = "datetime";
+    dataSet.fieldMappings = [{fromField:"datetime", toField:"datetime"}, {fromField:"temperature", toField:"temperature"}, {fromField: "humidity", toField:"humidity"}];
+
+	//chart.addListener("dataUpdated", zoomChart);
+	//chart.addListener("rendered", zoomChart);
+
+	chart.dataSets = [dataSet];
+
+	var stockPanel = new AmCharts.StockPanel();
+    chart.panels = [stockPanel];
+
+	var graph = new AmCharts.StockGraph();
+    graph.valueField = "temperature";
+    graph.type = "line";
+    graph.fillAlphas = 1;
+    graph.title = "MyGraph"; 
+    stockPanel.addStockGraph(graph);
+
+    //chart.write("chartdiv");
+
+    //ScrollBar
+    var chartScrollbarSettings = new AmCharts.ChartScrollbarSettings();
+	chartScrollbarSettings.graph = graph;
+	chartScrollbarSettings.graphType = "line";
+	chart.chartScrollbarSettings = chartScrollbarSettings;
+
+
+	return chart;
+
+}
 
 //Encapsulate Socket in Angular
 sensorsApp.factory('socket', function ($rootScope) {
