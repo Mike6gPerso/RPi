@@ -6,15 +6,16 @@
 
 #include <pigpio.h>
 #include <sqlite3.h>
+#include "linkedList.h"
 
 
 /*
 vw.c
-2015-04-03 - MGD
+2015-06-29 - MGD
 Public Domain
 
 gcc -g -o vw2 vw2.c -lpigpio -lpthread -lrt -lsqlite3
-gcc -g -o vw vw.c -lpthread -lrt -lsqlite3
+gcc -g -o vw2 vw2.c -lpthread -lrt -lsqlite3 linkedList.c
 sudo ./vw2 > log.txt 2>&1 &
 */
 

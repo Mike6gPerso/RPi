@@ -1,13 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
 
 /*
-test_array.c
+test_linked_list.c
 Public Domain
 
-gcc -g -o test_array test_array.c
+gcc -g -o test_linked_list test_linked_list.c
 
 */
 
@@ -17,18 +15,18 @@ gcc -g -o test_array test_array.c
 */
 
 struct t_node {
-    int group_id;
-    int node_id;
+    char *group_id;
+    char *node_id;
     long lastReceived;
     struct t_node *next;
 };
 
 struct t_node *head;
 
-int updateInfo(int group_id, int node_id, long lastReceived){
+int updateInfo(char * group_id, char * node_id, long lastReceived){
     struct t_node  *currentNode = head;
-    struct t_node  *previousNode = head;
-    struct t_node  *tempNode = 0;
+    //struct t_node  *previousNode = head;
+    //struct t_node  *tempNode = 0;
 
     int updated = 0;
     while(updated == 0 && currentNode != 0) {
@@ -44,25 +42,30 @@ int updateInfo(int group_id, int node_id, long lastReceived){
             }
         } else {
             //not the node I want to update
-            previousNode = currentNode;
+            //previousNode = currentNode;
             currentNode = currentNode->next;
         }
     } // end while
 
     if(updated == 0){
-        //create a node to add at the head of the list --> previousNode->next;
-        tempNode = (struct t_node *) malloc (sizeof(struct t_node));
-        tempNode->group_id = group_id;
-        tempNode->node_id = node_id;
-        tempNode->lastReceived = lastReceived;
-        tempNode->next = 0;
+        //create a node to add at the head of the list
+        currentNode = (struct t_node *) malloc (sizeof(struct t_node));
+        currentNode->group_id = group_id;
+        currentNode->node_id = node_id;
+        currentNode->lastReceived = lastReceived;
+        currentNode->next = head;
+        head = currentNode;
+        /*
         if(previousNode == 0) {
             //create head !
             head = tempNode;
         } else {
             previousNode->next = tempNode;
         }
+        */
     }
+
+    return 0;
 }
 
 void printList(){
@@ -74,8 +77,8 @@ void printList(){
     }
     while(currentNode != 0){
         printf("Node #%i\n", ++nbNodes);
-        printf("group_id %i\n", currentNode->group_id);
-        printf("node_id %i\n", currentNode->node_id);
+        printf("group_id %s\n", currentNode->group_id);
+        printf("node_id %s\n", currentNode->node_id);
         printf("lastReceived %li\n", currentNode->lastReceived);
         printf("---------------\n");
         currentNode = currentNode->next;
@@ -91,7 +94,7 @@ int countNodes(){
     }
     return result;
 }
-void clearList(int nbNodesToKeep){
+void clearListKeep(int nbNodesToKeep){
     struct t_node  *currentNode = head;
     int nodeIdx = 0;
 
@@ -101,6 +104,8 @@ void clearList(int nbNodesToKeep){
     while( (nodeIdx++ + nbNodesToKeep < nbNodes) && currentNode != 0){
         if(currentNode->next != 0){
             head = currentNode->next;
+            free(currentNode->group_id);
+            free(currentNode->node_id);
             free(currentNode);
             currentNode = head;
         } else {
@@ -109,7 +114,17 @@ void clearList(int nbNodesToKeep){
             head = 0;
         }
     }
-    
+}
+void clearListClear(int nbNodesToClear){
+    struct t_node  *currentNode = head;
+    int nodeIdx = 0;
+
+    while(nodeIdx < nbNodesToClear && currentNode != 0) {
+        currentNode = currentNode->next;
+        free(head);
+        head = currentNode;
+        nodeIdx++;
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -119,47 +134,55 @@ int main(int argc, char *argv[]) {
     head = 0;
     printList();
     
-    updateInfo(2,1,1334);
+    updateInfo("2","1",1334);
     printList();
 
-    updateInfo(2,1,1334);
+    updateInfo("2","1",1334);
     printList();
 
-    updateInfo(2,1,1336);
-    updateInfo(2,2,1340);
+    updateInfo("2","1",1336);
+    updateInfo("2","2",1340);
     printList();
 
-    updateInfo(2,1,1500);
-    updateInfo(2,2,1340);
+    updateInfo("2","1",1500);
+    updateInfo("2","2",1340);
     printList();
 
     printf("Start cleaning list\n");
-    clearList(3);
+    clearListKeep(3);
     printList();
 
-    clearList(2);
+    clearListKeep(2);
     printList();
 
-    printf("clearList(1);\n");
-    clearList(1);
+    printf("clearListKeep(1);\n");
+    clearListKeep(1);
     printList();
 
-    clearList(1);
+    clearListKeep(1);
     printList();
 
-    clearList(0);
+    clearListKeep(0);
     printList();
 
-    updateInfo(2,2,1);
-    updateInfo(2,2,2);
-    updateInfo(2,2,3);
-    updateInfo(2,2,4);
-    updateInfo(2,2,5);
-    updateInfo(2,2,5);
-    updateInfo(2,2,5);
-    updateInfo(2,2,5);
+    updateInfo("2","2",1);
+    updateInfo("2","2",2);
+    updateInfo("2","2",3);
+    updateInfo("2","2",4);
+    updateInfo("2","2",5);
+    updateInfo("2","2",5);
+    updateInfo("2","2",5);
+    updateInfo("2","2",5);
     printList();
-    clearList(0);
+
+    updateInfo("2","1",5);
+    updateInfo("2","3",5);
+    updateInfo("2","4",5);
+    updateInfo("2","5",5);
+    printList();
+    clearListClear(2);
+    printList();
+    clearListClear(10);
     /*
     head = (struct t_node *) malloc (sizeof(struct t_node));
     head->group_id = -1;
