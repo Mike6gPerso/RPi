@@ -14,9 +14,9 @@ vw.c
 2015-06-29 - MGD
 Public Domain
 
-gcc -g -o vw2 vw2.c -lpigpio -lpthread -lrt -lsqlite3 linkedList.c
+gcc -g -o RF_Receiver RF_Receiver.c -lpigpio -lpthread -lrt -lsqlite3 linkedList.c
 gcc -g -o vw2 vw2.c -lpthread -lrt -lsqlite3 linkedList.c
-sudo ./vw2 > log.txt 2>&1 &
+sudo ./RF_Receiver > log.txt 2>&1 &
 */
 
 /*

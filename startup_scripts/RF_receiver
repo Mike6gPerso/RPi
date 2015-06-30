@@ -1,0 +1,21 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          RF_Receiver
+# Required-Start:    $all
+# Required-Stop:     $all
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: starts RF Receiver
+# Description:       starts RF Receiver (433Mhz with Chinese elements) to receive info from nodes
+### END INIT INFO
+
+
+case $1 in
+start) start-stop-daemon --start --exec /home/pi/SmartHome/server/RF_Receiver --pidfile /var/run/vw.pid --make-pidfile --chdir /home/pi/SmartHome/server/ --background
+       ;;
+stop)  start-stop-daemon --stop --pidfile /var/run/RF_receiver.pid
+       ;;
+esac
+
+exit 0

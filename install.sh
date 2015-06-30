@@ -4,6 +4,8 @@ serverFolder=/home/pi/SmartHome/server/
 webFolder=/var/www/
 echo \*\* Init... \*\*
 
+mkdir -p $serverFolder
+
 echo \*\* updating JS \*\*
 #JS goes to /home/pi/SmartHome/server/
 service node stop
@@ -13,9 +15,9 @@ service node start
 echo \*\* updating C code \*\*
  #compile !
 cd C
-gcc -g -o vw vw.c -lpigpio -lpthread -lrt -lsqlite3
-service vw stop
-cp ./vw $serverFolder
+gcc -g -o RF_receiver vw.c -lpigpio -lpthread -lrt -lsqlite3 linkedList.c
+service RF_receiver stop
+cp ./RF_receiver $serverFolder
 
 cd ..
 #C goes to /home/pi/SmartHome/server/
@@ -28,6 +30,6 @@ echo \*\* upgrading Web \*\*
 #web goes to /var/www/...
 
 echo \*\* restart service \*\*
-service vw start
+service RF_receiver start
 
 echo \*\* End \*\*
