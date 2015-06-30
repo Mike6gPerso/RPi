@@ -14,7 +14,7 @@ vw.c
 2015-06-29 - MGD
 Public Domain
 
-gcc -g -o vw2 vw2.c -lpigpio -lpthread -lrt -lsqlite3
+gcc -g -o vw2 vw2.c -lpigpio -lpthread -lrt -lsqlite3 linkedList.c
 gcc -g -o vw2 vw2.c -lpthread -lrt -lsqlite3 linkedList.c
 sudo ./vw2 > log.txt 2>&1 &
 */
@@ -691,6 +691,8 @@ void * manageDataReceived (void *arg){
 #define TX 25
 
 #define BPS 2000
+
+LinkedList head;
 
 int main(int argc, char *argv[])
 {
