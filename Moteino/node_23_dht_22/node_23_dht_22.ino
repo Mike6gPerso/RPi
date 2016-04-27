@@ -139,6 +139,81 @@ byte sendLen;
 char bufferT[10];
 char bufferH[10];
 
+//http://forum.arduino.cc/index.php?topic=37391.0
+/*
+*  floatToString.h
+*
+*  Usage: floatToString(buffer string, float value, precision, minimum text width)
+*
+*  Example:
+*  char test[20];    // string buffer
+*  float M;          // float variable to be converted
+*                 // precision -> number of decimal places
+*                 // min text width -> character output width, 0 = no right justify
+*
+*  Serial.print(floatToString(test, M, 3, 7)); // call for conversion function
+*  
+*/
+char * floatToString(char * outstr, double val, byte precision, byte widthp){
+ char temp[16]; //increase this if you need more digits than 15
+ byte i;
+
+ temp[0]='\0';
+ outstr[0]='\0';
+
+ if(val < 0.0){
+   strcpy(outstr,"-\0");  //print "-" sign
+   val *= -1;
+ }
+
+ if( precision == 0) {
+   strcat(outstr, ltoa(round(val),temp,10));  //prints the int part
+ }
+ else {
+   unsigned long frac, mult = 1;
+   byte padding = precision-1;
+   
+   while (precision--)
+     mult *= 10;
+
+   val += 0.5/(float)mult;      // compute rounding factor
+   
+   strcat(outstr, ltoa(floor(val),temp,10));  //prints the integer part without rounding
+   strcat(outstr, ".\0"); // print the decimal point
+
+   frac = (val - floor(val)) * mult;
+
+   unsigned long frac1 = frac;
+
+   while(frac1 /= 10)
+     padding--;
+
+   while(padding--)
+     strcat(outstr,"0\0");    // print padding zeros
+
+   strcat(outstr,ltoa(frac,temp,10));  // print fraction part
+ }
+
+ // generate width space padding
+ if ((widthp != 0)&&(widthp >= strlen(outstr))){
+   byte J=0;
+   J = widthp - strlen(outstr);
+
+   for (i=0; i< J; i++) {
+     temp[i] = ' ';
+   }
+
+   temp[i++] = '\0';
+   strcat(temp,outstr);
+   strcpy(outstr,temp);
+ }
+
+ return outstr;
+}
+
+
+
+
 void loop()
 {
   if (radio.receiveDone())
@@ -174,8 +249,10 @@ void loop()
     }
     sendLoops = SEND_LOOPS-1;
 
-    dtostrf(_h,5,2,bufferH);
-    dtostrf(_t,5,2,bufferT); // sprintf does not support floating point: http://forum.arduino.cc/index.php?topic=125946.0
+    floatToString(bufferT, _t, 2, 2);
+    floatToString(bufferH, _h, 2, 2);
+    //dtostrf(_h,5,2,bufferH);
+    //dtostrf(_t,5,2,bufferT); // sprintf does not support floating point: http://forum.arduino.cc/index.php?topic=125946.0
     sprintf(buffer, "BAT:%sv C:%s H:%s", BATstr, bufferT, bufferH);
     
     //sprintf(buffer, "C:%s H:%s", bufferT, bufferH);
