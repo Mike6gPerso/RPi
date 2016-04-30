@@ -46,6 +46,7 @@
 #include "DHT.h"
 
 #define DHTPIN 4     // what pin we're connected to
+#define DHTPOWERPIN 5
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 
 //*****************************************************************************************************************************
@@ -108,6 +109,7 @@ void setup(void)
   Serial.begin(SERIAL_BAUD);
 #endif
   pinMode(LED, OUTPUT);
+  pinMode(DHTPOWERPIN, OUTPUT);
   
   radio.initialize(FREQUENCY,NODEID,NETWORKID);
 #ifdef IS_RFM69HW
@@ -115,11 +117,13 @@ void setup(void)
 #endif
   radio.encrypt(ENCRYPTKEY);
 
-  sprintf(buffer, "WeatherMote - transmitting at: %d Mhz...", FREQUENCY==RF69_433MHZ ? 433 : FREQUENCY==RF69_868MHZ ? 868 : 915);
+  digitalWrite(DHTPOWERPIN, LOW);
+
+  sprintf(buffer, "WeatherMote %d - transmitting at: %d Mhz...", NODEID, FREQUENCY==RF69_433MHZ ? 433 : FREQUENCY==RF69_868MHZ ? 868 : 915);
   DEBUGln(buffer);
 
   //initialize weather shield sensors  
-  dht.begin();
+  //dht.begin();
   
   radio.sendWithRetry(GATEWAYID, "START", 6);
   Blink(LED, 100);Blink(LED, 100);Blink(LED, 100);
@@ -211,9 +215,6 @@ char * floatToString(char * outstr, double val, byte precision, byte widthp){
  return outstr;
 }
 
-
-
-
 void loop()
 {
   if (radio.receiveDone())
@@ -241,8 +242,13 @@ void loop()
   }
   if (sendLoops--<=0)   //send readings every SEND_LOOPS
   {
+    //read values
+    digitalWrite(DHTPOWERPIN, HIGH);
+    delay(555);
+    dht.begin();
     float _t = dht.readTemperature(false, true);
     float _h = dht.readHumidity();
+    digitalWrite(DHTPOWERPIN, LOW);
     if (isnan(_h) || isnan(_t)) {
       DEBUGln("Failed to read from DHT sensor!");
       return;
@@ -253,7 +259,15 @@ void loop()
     floatToString(bufferH, _h, 2, 2);
     //dtostrf(_h,5,2,bufferH);
     //dtostrf(_t,5,2,bufferT); // sprintf does not support floating point: http://forum.arduino.cc/index.php?topic=125946.0
-    sprintf(buffer, "BAT:%sv C:%s H:%s", BATstr, bufferT, bufferH);
+    //sprintf(buffer, "BAT:%sv C:%s H:%s", BATstr, bufferT, bufferH);
+    char bufferTmp[50] = {0};
+    DEBUGln(strlen(BATstr));
+    DEBUGln(bufferTmp);
+    if(strlen(BATstr)>0){
+      sprintf(bufferTmp, "BAT:%s ", BATstr);
+      memset(BATstr, 0, sizeof(BATstr)); // = '\0';
+    }
+    sprintf(buffer, "%sC:%s H:%s", bufferTmp, bufferT, bufferH);
     
     //sprintf(buffer, "C:%s H:%s", bufferT, bufferH);
     sendLen = strlen(buffer);
@@ -290,7 +304,7 @@ void readBattery()
   //  DEBUGln(readings);
   batteryVolts = BATT_FORMULA(readings / 5.0);
   dtostrf(batteryVolts,3,2, BATstr); //update the BATStr which gets sent every BATT_CYCLES or along with the MOTION message
-  if (batteryVolts <= BATT_LOW) BATstr = "LOW";
+  if (batteryVolts <= BATT_LOW) BATstr = "LOW ";
 }
 
 void Blink(byte PIN, byte DELAY_MS)
