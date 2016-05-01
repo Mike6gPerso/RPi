@@ -96,7 +96,6 @@ period_t sleepTime = SLEEP_LONGEST; //period_t is an enum type defined in the Lo
 
 //global program variables
 RFM69 radio;
-char Pstr[10];
 char buffer[50];
 SPIFlash flash(8, 0xEF30); //WINDBOND 4MBIT flash chip on CS pin D8 (default for Moteino)
 
@@ -206,7 +205,6 @@ char * floatToString(char * outstr, double val, byte precision, byte widthp){
    for (i=0; i< J; i++) {
      temp[i] = ' ';
    }
-
    temp[i++] = '\0';
    strcat(temp,outstr);
    strcpy(outstr,temp);
@@ -217,24 +215,6 @@ char * floatToString(char * outstr, double val, byte precision, byte widthp){
 
 void loop()
 {
-  if (radio.receiveDone())
-  {
-    //byte newStatus=STATUS;
-    DEBUG('[');DEBUG(radio.SENDERID);DEBUG("] ");
-    for (byte i = 0; i < radio.DATALEN; i++)
-      DEBUG((char)radio.DATA[i]);
-    if(radio.DATALEN == 1){
-      if(radio.DATA[0] == 'B'){
-        Blink(LED, 200);
-      }
-    }
-    if (radio.ACKRequested())
-    {
-      radio.sendACK();
-      DEBUG(" - ACK sent.");
-    }
-  }
-  
   if (battReadLoops--<=0) //only read battery every BATT_READ_LOOPS cycles
   {
     readBattery();
@@ -261,8 +241,6 @@ void loop()
     //dtostrf(_t,5,2,bufferT); // sprintf does not support floating point: http://forum.arduino.cc/index.php?topic=125946.0
     //sprintf(buffer, "BAT:%sv C:%s H:%s", BATstr, bufferT, bufferH);
     char bufferTmp[50] = {0};
-    DEBUGln(strlen(BATstr));
-    DEBUGln(bufferTmp);
     if(strlen(BATstr)>0){
       sprintf(bufferTmp, "BAT:%s ", BATstr);
       memset(BATstr, 0, sizeof(BATstr)); // = '\0';
@@ -281,9 +259,9 @@ void loop()
     
   SERIALFLUSH();
   //radio.sleep(); //you can comment out this line if you want this node to listen for wireless programming requests
-  //LowPower.powerDown(sleepTime, ADC_OFF, BOD_OFF);
-  LowPower.idle(SLEEP_8S, ADC_OFF, TIMER2_OFF, TIMER1_OFF, 
-              TIMER0_OFF, SPI_ON, USART0_OFF, TWI_OFF); //SPI_ON is important when receiving is activated
+  LowPower.powerDown(sleepTime, ADC_OFF, BOD_OFF);
+  //LowPower.idle(SLEEP_8S, ADC_OFF, TIMER2_OFF, TIMER1_OFF, 
+  //            TIMER0_OFF, SPI_ON, USART0_OFF, TWI_OFF); //SPI_ON is important when receiving is activated
   //delay(8000);
   DEBUGln("WAKEUP");
 }
