@@ -149,7 +149,7 @@ void manageTemperature(){
     tempLoop = TEMP_LOOP-1;
     dtostrf(dht.readHumidity(),5,2,bufferH);
     dtostrf(dht.readTemperature(),5,2,bufferT); // sprintf does not support floating point: http://forum.arduino.cc/index.php?topic=125946.0
-    DEBUG("[1] C:");DEBUG(bufferT);DEBUG(" H:");DEBUG(bufferH);DEBUG("   [RSSI:-65]");DEBUGln();
+    DEBUG("[1] C:");DEBUG(bufferT);DEBUG(" H:");DEBUG(bufferH);DEBUG("   [RSSI:-55]");DEBUGln();
     //sprintf(bufferTemperature, "[1] C:%s H:%s   [RSSI:-83]", bufferT, bufferH);
   }
 }
