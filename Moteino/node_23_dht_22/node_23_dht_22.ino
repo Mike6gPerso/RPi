@@ -228,14 +228,16 @@ void loop()
     }
     sendLoops = SEND_LOOPS-1;
     
-    char bufferTmp[50] = {0};
+    char bufferTmp[50];
+    bufferTmp[0] = '\0';
     if (battReadLoops--<=0) //only read battery every BATT_READ_LOOPS cycles
     {
         readBattery();
         battReadLoops = BATT_READ_LOOPS-1;
         
         sprintf(bufferTmp, "BAT:%s ", BATstr);
-        memset(BATstr, 0, strlen(BATstr); // = '\0';
+        //memset(BATstr, 0, strlen(BATstr); // = '\0';
+        BATstr[0] = '\0';
     
     }
 
@@ -248,7 +250,7 @@ void loop()
     
     //sprintf(buffer, "C:%s H:%s", bufferT, bufferH);
     sendLen = strlen(buffer);
-    radio.sendWithRetry(GATEWAYID, buffer, sendLen, 2); //retry two time
+    radio.sendWithRetry(GATEWAYID, buffer, sendLen, 2); //retry two times
     DEBUG(buffer); DEBUG(" (packet length:"); DEBUG(sendLen); DEBUGln(")");
 
     #ifdef BLINK_EN
