@@ -77,7 +77,7 @@ period_t sleepTime = SLEEP_LONGEST; //period_t is an enum type defined in the Lo
 //#define BATT_FORMULA(reading) reading * 0.00322 * 1.475  // >>> fine tune this parameter to match your voltage when fully charged
 #define BATT_FORMULA(reading) reading / 88 
 #define BATT_LOW      1.6  //(volts)
-#define BATT_READ_LOOPS  SEND_LOOPS*10  // read and report battery voltage every this many sleep cycles (ex 30cycles * 8sec sleep = 240sec/4min). For 450 cycles you would get ~1 hour intervals between readings
+#define BATT_READ_LOOPS  10  // read and report battery voltage every this many sleep cycles (ex 30cycles * 8sec sleep = 240sec/4min). For 450 cycles you would get ~1 hour intervals between readings
 //*****************************************************************************************************************************
 #define LED                  9   //pin connected to onboard LED on regular Moteinos
 //#define BLINK_EN                 //uncomment to blink LED on every send
@@ -129,16 +129,15 @@ void setup(void)
   Blink(LED, 100);Blink(LED, 100);Blink(LED, 100);
   
   SERIALFLUSH();
-  readBattery();
+  radio.sleep();
 }
 
-unsigned long doorPulseCount = 0;
 char input=0;
 double P;
 byte sendLoops=0;
 byte battReadLoops=0;
 float batteryVolts = 5;
-char* BATstr="BAT:5.00v"; //longest battery voltage reading message = 9chars
+char BATstr[]="BAT:5.00v"; //longest battery voltage reading message = 9chars
 byte sendLen;
 char bufferT[10];
 char bufferH[10];
@@ -216,17 +215,10 @@ char * floatToString(char * outstr, double val, byte precision, byte widthp){
 
 void loop()
 {
-  if (battReadLoops--<=0) //only read battery every BATT_READ_LOOPS cycles
-  {
-    readBattery();
-    battReadLoops = BATT_READ_LOOPS-1;
-  }
   if (sendLoops--<=0)   //send readings every SEND_LOOPS
   {
     //read values
     digitalWrite(DHTPOWERPIN, HIGH);
-    delay(555);
-    dht.begin();
     float _t = dht.readTemperature(false, true);
     float _h = dht.readHumidity();
     digitalWrite(DHTPOWERPIN, LOW);
@@ -235,17 +227,23 @@ void loop()
       return;
     }
     sendLoops = SEND_LOOPS-1;
+    
+    char bufferTmp[50] = {0};
+    if (battReadLoops--<=0) //only read battery every BATT_READ_LOOPS cycles
+    {
+        readBattery();
+        battReadLoops = BATT_READ_LOOPS-1;
+        
+        sprintf(bufferTmp, "BAT:%s ", BATstr);
+        memset(BATstr, 0, strlen(BATstr); // = '\0';
+    
+    }
 
     floatToString(bufferT, _t, 2, 2);
     floatToString(bufferH, _h, 2, 2);
     //dtostrf(_h,5,2,bufferH);
     //dtostrf(_t,5,2,bufferT); // sprintf does not support floating point: http://forum.arduino.cc/index.php?topic=125946.0
     //sprintf(buffer, "BAT:%sv C:%s H:%s", BATstr, bufferT, bufferH);
-    char bufferTmp[50] = {0};
-    if(strlen(BATstr)>0){
-      sprintf(bufferTmp, "BAT:%s ", BATstr);
-      memset(BATstr, 0, sizeof(BATstr)); // = '\0';
-    }
     sprintf(buffer, "%sC:%s H:%s", bufferTmp, bufferT, bufferH);
     
     //sprintf(buffer, "C:%s H:%s", bufferT, bufferH);
@@ -259,11 +257,10 @@ void loop()
   }
     
   SERIALFLUSH();
-  //radio.sleep(); //you can comment out this line if you want this node to listen for wireless programming requests
+  radio.sleep(); //you can comment out this line if you want this node to listen for wireless programming requests
   LowPower.powerDown(sleepTime, ADC_OFF, BOD_OFF);
   //LowPower.idle(SLEEP_8S, ADC_OFF, TIMER2_OFF, TIMER1_OFF, 
   //            TIMER0_OFF, SPI_ON, USART0_OFF, TWI_OFF); //SPI_ON is important when receiving is activated
-  //delay(8000);
   DEBUGln("WAKEUP");
 }
 
@@ -282,7 +279,7 @@ void readBattery()
   pinMode(BATT_MONITOR_EN, INPUT); //highZ mode will allow p-mosfet to be pulled high and disconnect the voltage divider on the weather shield
   //  DEBUGln(readings);
   batteryVolts = BATT_FORMULA(readings / 5.0);
-  dtostrf(batteryVolts,3,2, BATstr); //update the BATStr which gets sent every BATT_CYCLES or along with the MOTION message
+  dtostrf(batteryVolts,3,2, BATstr); //update the BATstr which gets sent every BATT_CYCLES or along with the MOTION message
   if (batteryVolts <= BATT_LOW) BATstr = "LOW ";
 }
 
