@@ -98,7 +98,7 @@ period_t sleepTime = SLEEP_LONGEST; //period_t is an enum type defined in the Lo
 //global program variables
 RFM69 radio;
 char buffer[50];
-SPIFlash flash(8, 0xEF30); //WINDBOND 4MBIT flash chip on CS pin D8 (default for Moteino)
+//SPIFlash flash(8, 0xEF30); //WINDBOND 4MBIT flash chip on CS pin D8 (default for Moteino)
 
 // Initialize DHT sensor for normal 16mhz Arduino
 DHT dht(DHTPIN, DHTTYPE);
@@ -112,24 +112,30 @@ void setup(void)
   pinMode(DHTPOWERPIN, OUTPUT);
   
   radio.initialize(FREQUENCY,NODEID,NETWORKID);
+  Blink(LED, 50);
 #ifdef IS_RFM69HW
   radio.setHighPower(); //uncomment only for RFM69HW!
 #endif
   radio.encrypt(ENCRYPTKEY);
+
+   digitalWrite(DHTPOWERPIN, HIGH);
+  
+  //initialize weather shield sensors  
+  dht.begin();
+  LowPower.powerDown(SLEEP_2S, ADC_OFF, BOD_OFF);
 
   digitalWrite(DHTPOWERPIN, LOW);
 
   sprintf(buffer, "WeatherMote %d - transmitting at: %d Mhz...", NODEID, FREQUENCY==RF69_433MHZ ? 433 : FREQUENCY==RF69_868MHZ ? 868 : 915);
   DEBUGln(buffer);
 
-  //initialize weather shield sensors  
-  dht.begin();
+
   
   radio.sendWithRetry(GATEWAYID, "START", 6);
+  radio.sleep();
   Blink(LED, 100);Blink(LED, 100);Blink(LED, 100);
   
   SERIALFLUSH();
-  radio.sleep();
 }
 
 char input=0;
@@ -219,10 +225,12 @@ void loop()
   {
     //read values
     digitalWrite(DHTPOWERPIN, HIGH);
+    LowPower.powerDown(SLEEP_SEC, ADC_OFF, BOD_OFF);
     float _t = dht.readTemperature(false, true);
     float _h = dht.readHumidity();
     digitalWrite(DHTPOWERPIN, LOW);
     if (isnan(_h) || isnan(_t)) {
+      sendLoops = 0;
       DEBUGln("Failed to read from DHT sensor!");
       return;
     }
@@ -235,7 +243,7 @@ void loop()
         readBattery();
         battReadLoops = BATT_READ_LOOPS-1;
         
-        sprintf(bufferTmp, "BAT:%s ", BATstr);
+        sprintf(bufferTmp, "BAT:%sv ", BATstr);
         //memset(BATstr, 0, strlen(BATstr); // = '\0';
         BATstr[0] = '\0';
     
@@ -251,6 +259,7 @@ void loop()
     //sprintf(buffer, "C:%s H:%s", bufferT, bufferH);
     sendLen = strlen(buffer);
     radio.sendWithRetry(GATEWAYID, buffer, sendLen, 2); //retry two times
+    radio.sleep(); //you can comment out this line if you want this node to listen for wireless programming requests
     DEBUG(buffer); DEBUG(" (packet length:"); DEBUG(sendLen); DEBUGln(")");
 
     #ifdef BLINK_EN
@@ -259,11 +268,12 @@ void loop()
   }
     
   SERIALFLUSH();
-  radio.sleep(); //you can comment out this line if you want this node to listen for wireless programming requests
   LowPower.powerDown(sleepTime, ADC_OFF, BOD_OFF);
   //LowPower.idle(SLEEP_8S, ADC_OFF, TIMER2_OFF, TIMER1_OFF, 
   //            TIMER0_OFF, SPI_ON, USART0_OFF, TWI_OFF); //SPI_ON is important when receiving is activated
-  DEBUGln("WAKEUP");
+  #ifdef SERIAL_EN
+    DEBUG(sendLoops);DEBUG(" - ");DEBUG(battReadLoops);DEBUGln(" - WAKEUP");
+  #endif
 }
 
 void readBattery()
@@ -282,7 +292,7 @@ void readBattery()
   //  DEBUGln(readings);
   batteryVolts = BATT_FORMULA(readings / 5.0);
   dtostrf(batteryVolts,3,2, BATstr); //update the BATstr which gets sent every BATT_CYCLES or along with the MOTION message
-  if (batteryVolts <= BATT_LOW) BATstr = "LOW ";
+  if (batteryVolts <= BATT_LOW) strcpy(BATstr,"LOW ");
 }
 
 void Blink(byte PIN, byte DELAY_MS)
