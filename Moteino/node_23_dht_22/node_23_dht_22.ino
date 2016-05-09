@@ -123,7 +123,7 @@ void setup(void)
   DEBUGln(buffer);
 
   //initialize weather shield sensors  
-  //dht.begin();
+  dht.begin();
   
   radio.sendWithRetry(GATEWAYID, "START", 6);
   Blink(LED, 100);Blink(LED, 100);Blink(LED, 100);
