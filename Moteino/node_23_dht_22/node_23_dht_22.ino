@@ -35,7 +35,7 @@
 // ***************************************************************************************************************************
 #include <RFM69.h>         //get it here: http://github.com/lowpowerlab/rfm69
 #include <SPIFlash.h>      //get it here: http://github.com/lowpowerlab/spiflash
-#include <WirelessHEX69.h> //get it here: https://github.com/LowPowerLab/WirelessProgramming
+//#include <WirelessHEX69.h> //get it here: https://github.com/LowPowerLab/WirelessProgramming
 #include <SPI.h>           //comes with Arduino
 
 #include <Wire.h>          //comes with Arduino
@@ -58,7 +58,7 @@
 #define FREQUENCY     RF69_433MHZ
 //#define FREQUENCY     RF69_868MHZ
 //#define FREQUENCY       RF69_915MHZ //Match this with the version of your Moteino! (others: RF69_433MHZ, RF69_868MHZ)
-#define ENCRYPTKEY      "myencryptionkey7" //has to be same 16 characters/bytes on all nodes, not more not less!
+#define ENCRYPTKEY      "encryptionkey123" //has to be same 16 characters/bytes on all nodes, not more not less!
 #define IS_RFM69HW    //uncomment only for RFM69HW! Leave out if you have RFM69W!
 //#define SEND_LOOPS   15 //send data this many sleep loops (15 loops of 8sec cycles = 120sec ~ 2 minutes)
 #define SEND_LOOPS   30
@@ -71,7 +71,7 @@
 #define SLEEP_LONGEST SLEEP_8S
 period_t sleepTime = SLEEP_LONGEST; //period_t is an enum type defined in the LowPower library (LowPower.h)
 //*********************************************************************************************
-#define BATT_MONITOR_EN A3 //enables battery voltage divider to get a reading from a battery, disable it to save power
+//#define BATT_MONITOR_EN A3 //enables battery voltage divider to get a reading from a battery, disable it to save power
 #define BATT_MONITOR  A7   //through 1Meg+470Kohm and 0.1uF cap from battery VCC - this ratio divides the voltage to bring it below 3.3V where it is scaled to a readable range
 #define BATT_CYCLES   2    //read and report battery voltage every this many sleep cycles (ex 30cycles * 8sec sleep = 240sec/4min). For 450 cyclesyou would get ~1 hour intervals
 //#define BATT_FORMULA(reading) reading * 0.00322 * 1.475  // >>> fine tune this parameter to match your voltage when fully charged
@@ -113,9 +113,7 @@ void setup(void)
   
   radio.initialize(FREQUENCY,NODEID,NETWORKID);
   Blink(LED, 50);
-#ifdef IS_RFM69HW
-  radio.setHighPower(); //uncomment only for RFM69HW!
-#endif
+
   radio.encrypt(ENCRYPTKEY);
 
    digitalWrite(DHTPOWERPIN, HIGH);
@@ -132,6 +130,9 @@ void setup(void)
 
   
   radio.sendWithRetry(GATEWAYID, "START", 6);
+  #ifdef IS_RFM69HW
+    radio.setHighPower(); //uncomment only for RFM69HW!
+  #endif
   radio.sleep();
   Blink(LED, 100);Blink(LED, 100);Blink(LED, 100);
   
@@ -147,6 +148,7 @@ char BATstr[]="BAT:5.00v"; //longest battery voltage reading message = 9chars
 byte sendLen;
 char bufferT[10];
 char bufferH[10];
+char bufferTendancy[10];
 
 //http://forum.arduino.cc/index.php?topic=37391.0
 /*
@@ -238,23 +240,22 @@ void loop()
     
     char bufferTmp[50];
     bufferTmp[0] = '\0';
-    if (battReadLoops--<=0) //only read battery every BATT_READ_LOOPS cycles
-    {
-        readBattery();
-        battReadLoops = BATT_READ_LOOPS-1;
-        
-        sprintf(bufferTmp, "BAT:%sv ", BATstr);
-        //memset(BATstr, 0, strlen(BATstr); // = '\0';
-        BATstr[0] = '\0';
-    
-    }
 
     floatToString(bufferT, _t, 2, 2);
     floatToString(bufferH, _h, 2, 2);
+
+    addTendancyValue(_t);
+    float coef = calculateCoef() * 10; //Muliply by 10 to get coef by hour
+    int startChar = 0;
+    if(coef > 0){
+      bufferTendancy[0] = '+';
+      startChar = 1;
+    }
+    floatToString(bufferTendancy + startChar, coef, 2, 2);
     //dtostrf(_h,5,2,bufferH);
     //dtostrf(_t,5,2,bufferT); // sprintf does not support floating point: http://forum.arduino.cc/index.php?topic=125946.0
     //sprintf(buffer, "BAT:%sv C:%s H:%s", BATstr, bufferT, bufferH);
-    sprintf(buffer, "%sC:%s H:%s", bufferTmp, bufferT, bufferH);
+    sprintf(buffer, "C:%s H:%s TD:%s", bufferT, bufferH, bufferTendancy);
     
     //sprintf(buffer, "C:%s H:%s", bufferT, bufferH);
     sendLen = strlen(buffer);
@@ -275,26 +276,39 @@ void loop()
     DEBUG(sendLoops);DEBUG(" - ");DEBUG(battReadLoops);DEBUGln(" - WAKEUP");
   #endif
 }
+////////////////////////////////////////////////////////////////
+#define TENDANCY_MAX_SIZE 5
+float storedValues[TENDANCY_MAX_SIZE];
+short int storedValuesIdx = 0;
 
-void readBattery()
-{
-  unsigned int readings=0;
-  
-  //enable battery monitor on WeatherShield (via mosfet controlled by A3)
-  pinMode(BATT_MONITOR_EN, OUTPUT);
-  digitalWrite(BATT_MONITOR_EN, LOW);
-
-  for (byte i=0; i<5; i++) //take several samples, and average
-    readings+=analogRead(BATT_MONITOR);
-  
-  //disable battery monitor
-  pinMode(BATT_MONITOR_EN, INPUT); //highZ mode will allow p-mosfet to be pulled high and disconnect the voltage divider on the weather shield
-  //  DEBUGln(readings);
-  batteryVolts = BATT_FORMULA(readings / 5.0);
-  dtostrf(batteryVolts,3,2, BATstr); //update the BATstr which gets sent every BATT_CYCLES or along with the MOTION message
-  if (batteryVolts <= BATT_LOW) strcpy(BATstr,"LOW ");
+void initTendancyArray(){
+  for(int i = 0; i < TENDANCY_MAX_SIZE; i++){
+    storedValues[i] = 200;
+  }
 }
 
+float calculateCoef(){
+  float meanTemp = 0.0f;
+  float sumXY = 0.0f;
+  short int nb_values = 0;
+  for(int i = 0; i < TENDANCY_MAX_SIZE; i++){
+    short int a = (storedValuesIdx + i) % TENDANCY_MAX_SIZE;
+    if(storedValues[a] < 200){
+      sumXY += storedValues[a]*(i+1);
+      meanTemp += storedValues[a];
+      ++nb_values;
+    }
+  }
+  meanTemp /= nb_values;
+  return ((sumXY - (meanTemp *15)) / 10); // 15 constants as mean X = 3 and nb Elements is 5
+}
+
+void addTendancyValue(float val){
+  storedValues[storedValuesIdx] = val;
+  storedValuesIdx = (storedValuesIdx + 1) % TENDANCY_MAX_SIZE;
+
+}
+////////////////////////////////////////////////////////////////
 void Blink(byte PIN, byte DELAY_MS)
 {
   pinMode(PIN, OUTPUT);
