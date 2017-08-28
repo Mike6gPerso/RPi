@@ -34,6 +34,7 @@
 // and copyright notices in any redistribution of this code
 // ***************************************************************************************************************************
 #include <RFM69.h>         //get it here: http://github.com/lowpowerlab/rfm69
+#include <RFM69_ATC.h>     //get it here: https://github.com/lowpowerlab/rfm69
 #include <SPIFlash.h>      //get it here: http://github.com/lowpowerlab/spiflash
 //#include <WirelessHEX69.h> //get it here: https://github.com/LowPowerLab/WirelessProgramming
 #include <SPI.h>           //comes with Arduino
@@ -63,6 +64,9 @@
 //#define SEND_LOOPS   15 //send data this many sleep loops (15 loops of 8sec cycles = 120sec ~ 2 minutes)
 #define SEND_LOOPS   30
 //*********************************************************************************************
+#define ENABLE_ATC    //comment out this line to disable AUTO TRANSMISSION CONTROL
+#define ATC_RSSI      -75
+//*********************************************************************************************
 #define SLEEP_FASTEST SLEEP_15MS
 #define SLEEP_FAST SLEEP_250MS
 #define SLEEP_SEC SLEEP_1S
@@ -71,14 +75,6 @@
 #define SLEEP_LONGEST SLEEP_8S
 period_t sleepTime = SLEEP_LONGEST; //period_t is an enum type defined in the LowPower library (LowPower.h)
 //*********************************************************************************************
-//#define BATT_MONITOR_EN A3 //enables battery voltage divider to get a reading from a battery, disable it to save power
-#define BATT_MONITOR  A7   //through 1Meg+470Kohm and 0.1uF cap from battery VCC - this ratio divides the voltage to bring it below 3.3V where it is scaled to a readable range
-#define BATT_CYCLES   2    //read and report battery voltage every this many sleep cycles (ex 30cycles * 8sec sleep = 240sec/4min). For 450 cyclesyou would get ~1 hour intervals
-//#define BATT_FORMULA(reading) reading * 0.00322 * 1.475  // >>> fine tune this parameter to match your voltage when fully charged
-#define BATT_FORMULA(reading) reading / 88 
-#define BATT_LOW      1.6  //(volts)
-#define BATT_READ_LOOPS  10  // read and report battery voltage every this many sleep cycles (ex 30cycles * 8sec sleep = 240sec/4min). For 450 cycles you would get ~1 hour intervals between readings
-//*****************************************************************************************************************************
 #define LED                  9   //pin connected to onboard LED on regular Moteinos
 //#define BLINK_EN                 //uncomment to blink LED on every send
 //#define SERIAL_EN                //comment out if you don't want any serial output
@@ -96,7 +92,13 @@ period_t sleepTime = SLEEP_LONGEST; //period_t is an enum type defined in the Lo
 //*****************************************************************************************************************************
 
 //global program variables
-RFM69 radio;
+
+#ifdef ENABLE_ATC
+  RFM69_ATC radio;
+#else
+  RFM69 radio;
+#endif
+
 char buffer[50];
 //SPIFlash flash(8, 0xEF30); //WINDBOND 4MBIT flash chip on CS pin D8 (default for Moteino)
 
@@ -116,23 +118,26 @@ void setup(void)
 
   radio.encrypt(ENCRYPTKEY);
 
-   digitalWrite(DHTPOWERPIN, HIGH);
+  digitalWrite(DHTPOWERPIN, HIGH);
   
   //initialize weather shield sensors  
   dht.begin();
   LowPower.powerDown(SLEEP_2S, ADC_OFF, BOD_OFF);
-
   digitalWrite(DHTPOWERPIN, LOW);
+
+  initTendancyArray();
 
   sprintf(buffer, "WeatherMote %d - transmitting at: %d Mhz...", NODEID, FREQUENCY==RF69_433MHZ ? 433 : FREQUENCY==RF69_868MHZ ? 868 : 915);
   DEBUGln(buffer);
-
-
   
-  radio.sendWithRetry(GATEWAYID, "START", 6);
   #ifdef IS_RFM69HW
     radio.setHighPower(); //uncomment only for RFM69HW!
   #endif
+  #ifdef ENABLE_ATC
+    radio.enableAutoPower(ATC_RSSI);
+  #endif
+  
+  radio.sendWithRetry(GATEWAYID, "START", 6);
   radio.sleep();
   Blink(LED, 100);Blink(LED, 100);Blink(LED, 100);
   
@@ -140,86 +145,8 @@ void setup(void)
 }
 
 char input=0;
-double P;
 byte sendLoops=0;
-byte battReadLoops=0;
-float batteryVolts = 5;
-char BATstr[]="BAT:5.00v"; //longest battery voltage reading message = 9chars
 byte sendLen;
-char bufferT[10];
-char bufferH[10];
-char bufferTendancy[10];
-
-//http://forum.arduino.cc/index.php?topic=37391.0
-/*
-*  floatToString.h
-*
-*  Usage: floatToString(buffer string, float value, precision, minimum text width)
-*
-*  Example:
-*  char test[20];    // string buffer
-*  float M;          // float variable to be converted
-*                 // precision -> number of decimal places
-*                 // min text width -> character output width, 0 = no right justify
-*
-*  Serial.print(floatToString(test, M, 3, 7)); // call for conversion function
-*  
-*/
-char * floatToString(char * outstr, double val, byte precision, byte widthp){
- char temp[16]; //increase this if you need more digits than 15
- byte i;
-
- temp[0]='\0';
- outstr[0]='\0';
-
- if(val < 0.0){
-   strcpy(outstr,"-\0");  //print "-" sign
-   val *= -1;
- }
-
- if( precision == 0) {
-   strcat(outstr, ltoa(round(val),temp,10));  //prints the int part
- }
- else {
-   unsigned long frac, mult = 1;
-   byte padding = precision-1;
-   
-   while (precision--)
-     mult *= 10;
-
-   val += 0.5/(float)mult;      // compute rounding factor
-   
-   strcat(outstr, ltoa(floor(val),temp,10));  //prints the integer part without rounding
-   strcat(outstr, ".\0"); // print the decimal point
-
-   frac = (val - floor(val)) * mult;
-
-   unsigned long frac1 = frac;
-
-   while(frac1 /= 10)
-     padding--;
-
-   while(padding--)
-     strcat(outstr,"0\0");    // print padding zeros
-
-   strcat(outstr,ltoa(frac,temp,10));  // print fraction part
- }
-
- // generate width space padding
- if ((widthp != 0)&&(widthp >= strlen(outstr))){
-   byte J=0;
-   J = widthp - strlen(outstr);
-
-   for (i=0; i< J; i++) {
-     temp[i] = ' ';
-   }
-   temp[i++] = '\0';
-   strcat(temp,outstr);
-   strcpy(outstr,temp);
- }
-
- return outstr;
-}
 
 void loop()
 {
@@ -237,29 +164,26 @@ void loop()
       return;
     }
     sendLoops = SEND_LOOPS-1;
-    
-    char bufferTmp[50];
-    bufferTmp[0] = '\0';
 
-    floatToString(bufferT, _t, 2, 2);
-    floatToString(bufferH, _h, 2, 2);
-
+    // Tendancy management
     addTendancyValue(_t);
     float coef = calculateCoef() * 10; //Muliply by 10 to get coef by hour
-    int startChar = 0;
-    if(coef > 0){
-      bufferTendancy[0] = '+';
-      startChar = 1;
+
+    //Output generation
+    snprintf(buffer, 3, "C:");
+    dtostrf(_t, 3, 2, buffer + strlen(buffer));
+    snprintf(buffer + strlen(buffer), 4, " H:");
+    dtostrf(_h, 3, 2, buffer + strlen(buffer));
+    snprintf(buffer + strlen(buffer), 5, " TD:");
+    if(coef > 0 ){
+      snprintf(buffer + strlen(buffer), 2, "+");
     }
-    floatToString(bufferTendancy + startChar, coef, 2, 2);
-    //dtostrf(_h,5,2,bufferH);
-    //dtostrf(_t,5,2,bufferT); // sprintf does not support floating point: http://forum.arduino.cc/index.php?topic=125946.0
-    //sprintf(buffer, "BAT:%sv C:%s H:%s", BATstr, bufferT, bufferH);
-    sprintf(buffer, "C:%s H:%s TD:%s", bufferT, bufferH, bufferTendancy);
-    
-    //sprintf(buffer, "C:%s H:%s", bufferT, bufferH);
+    dtostrf(coef, 3, 2, buffer + strlen(buffer));
+     
+
+    //Sending message    
     sendLen = strlen(buffer);
-    radio.sendWithRetry(GATEWAYID, buffer, sendLen, 2); //retry two times
+    radio.sendWithRetry(GATEWAYID, buffer, sendLen, 1); //retry once
     radio.sleep(); //you can comment out this line if you want this node to listen for wireless programming requests
     DEBUG(buffer); DEBUG(" (packet length:"); DEBUG(sendLen); DEBUGln(")");
 
@@ -279,10 +203,10 @@ void loop()
 ////////////////////////////////////////////////////////////////
 #define TENDANCY_MAX_SIZE 5
 float storedValues[TENDANCY_MAX_SIZE];
-short int storedValuesIdx = 0;
+byte storedValuesIdx = 0;
 
 void initTendancyArray(){
-  for(int i = 0; i < TENDANCY_MAX_SIZE; i++){
+  for(byte i = 0; i < TENDANCY_MAX_SIZE; i++){
     storedValues[i] = 200;
   }
 }
@@ -290,9 +214,9 @@ void initTendancyArray(){
 float calculateCoef(){
   float meanTemp = 0.0f;
   float sumXY = 0.0f;
-  short int nb_values = 0;
-  for(int i = 0; i < TENDANCY_MAX_SIZE; i++){
-    short int a = (storedValuesIdx + i) % TENDANCY_MAX_SIZE;
+  byte nb_values = 0;
+  for(byte i = 0; i < TENDANCY_MAX_SIZE; i++){
+    byte a = (storedValuesIdx + i) % TENDANCY_MAX_SIZE;
     if(storedValues[a] < 200){
       sumXY += storedValues[a]*(i+1);
       meanTemp += storedValues[a];
